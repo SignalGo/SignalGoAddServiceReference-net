@@ -1,9 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="SignalGoAddServiceReference.0bde2334-d8c9-4dc4-851f-61016c295347" Version="1.0" Language="en-US" Publisher="Ali Yousefi" />
-        <DisplayName>SignalGoAddServiceReference</DisplayName>
-        <Description xml:space="preserve">Empty VSIX Project.</Description>
+        <Identity Id="SignalGoExtension.0bde2334-d8c9-4dc4-851f-61016c295347" Version="1.0" Language="en-US" Publisher="Ali Yousefi" />
+        <DisplayName>SignalGoExtension</DisplayName>
+        <Description xml:space="preserve">Add or Update Signal Go Services, this will automatic generate models and services for signalgo client side</Description>
+        <License>LICENSE.txt</License>
+        <Icon>signalgo icon.ico</Icon>
+        <PreviewImage>Resources\preview.png</PreviewImage>
+        <Tags>signalgo signal server</Tags>
     </Metadata>
     <Installation AllUsers="true">
         <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,16.0)" />

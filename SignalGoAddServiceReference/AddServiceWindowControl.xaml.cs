@@ -338,7 +338,7 @@
             builderResult.AppendLine("{");
             foreach (var classInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ServiceLevel))
             {
-                GenerateServiceClass(classInfo, "    ", builderResult);
+                GenerateServiceClass(classInfo, "    ", builderResult, true);
             }
             builderResult.AppendLine("}");
             builderResult.AppendLine("");
@@ -371,7 +371,7 @@
             builderResult.AppendLine("{");
             foreach (var callbackInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.CallbackLevel))
             {
-                GenerateServiceClass(callbackInfo, "    ", builderResult);
+                GenerateServiceClass(callbackInfo, "    ", builderResult, false);
             }
             builderResult.AppendLine("}");
             builderResult.AppendLine("");
@@ -390,7 +390,7 @@
             return builderResult.ToString();
         }
 
-        static void GenerateServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder)
+        static void GenerateServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, bool generateAyncMethods)
         {
             string serviceAttribute = $@"[ServiceContract(""{classReferenceInfo.ServiceName}"", InstanceType.SingleInstance)]";
             builder.AppendLine(prefix + serviceAttribute);
@@ -399,7 +399,8 @@
             foreach (var methodInfo in classReferenceInfo.Methods)
             {
                 GenerateMethod(methodInfo, prefix + prefix, builder);
-                GenerateAsyncMethod(methodInfo, prefix + prefix, builder);
+                if (generateAyncMethods)
+                    GenerateAsyncMethod(methodInfo, prefix + prefix, builder);
             }
 
             builder.AppendLine(prefix + "}");

@@ -89,7 +89,15 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
     <Content Include="index.html" />
+    <Content Include="LICENSE.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Newtonsoft.Json.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Resources\preview.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -100,7 +108,10 @@
     <Content Include="Resources\AddSignalGoServicePackage.ico" />
     <None Include="Resources\Newtonsoft.Json.dll" />
     <Content Include="Resources\UpdateSignalGoServiceCommand.png" />
-    <Content Include="signalgo icon.ico" />
+    <Content Include="signalgo icon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="stylesheet.css" />
   </ItemGroup>
   <ItemGroup>
