@@ -18,6 +18,7 @@
     using SignalGo.Shared.Models.ServiceReference;
     using System.Reflection;
     using SignalGoAddServiceReference.Models;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Interaction logic for AddServiceWindowControl.
@@ -111,25 +112,27 @@
                 if (!Directory.Exists(servicesFolder))
                     project.ProjectItems.AddFolder("Connected Services");
                 Uri uri = null;
-                if (string.IsNullOrEmpty(txtServiceName.Text))
+                var serviceNameSpace = txtServiceName.Text.Trim();
+                var serviceURI = txtServiceAddress.Text.Trim();
+                if (string.IsNullOrEmpty(serviceNameSpace))
                 {
                     MessageBox.Show("Please fill your service name", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
-                else if (!Uri.TryCreate(txtServiceAddress.Text, UriKind.Absolute, out uri))
+                else if (!Uri.TryCreate(serviceURI, UriKind.Absolute, out uri))
                 {
                     MessageBox.Show("Service address is not true", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
-                string servicePath = Path.Combine(servicesFolder, Path.GetFileNameWithoutExtension(txtServiceName.Text));
+                string servicePath = Path.Combine(servicesFolder, Path.GetFileNameWithoutExtension(serviceNameSpace));
                 if (!Directory.Exists(servicePath))
                     Directory.CreateDirectory(servicePath);
-                var fullFilePath = DownloadService(uri, servicePath, txtServiceName.Text);
+                var fullFilePath = DownloadService(uri, servicePath, serviceNameSpace);
 
                 StringBuilder text = new StringBuilder();
-                text.AppendLine(txtServiceAddress.Text);
-                text.AppendLine(txtServiceName.Text);
+                text.AppendLine(serviceURI);
+                text.AppendLine(serviceNameSpace);
                 var signalGoSettingPath = Path.Combine(servicePath, "setting.signalgo");
                 File.WriteAllText(signalGoSettingPath, text.ToString(), Encoding.UTF8);
 
@@ -290,7 +293,8 @@
                                                 mapDataClassInfo.ServiceName = nameSpaceAndName.Item1;
                                             }
 
-                                            mapDataClassInfo.Name = nameSpaceAndName.Item2;
+                                            mapDataClassInfo.Name = nameSpaceAndName.Item2.Replace("typeof", "").Replace("(", "").Replace(")", "")
+                                                .Replace("[", "").Replace("]", "").Trim();
                                         }
                                         else if (item.Contains("IsEnabledNotifyPropertyChangedBaseClass"))
                                         {
@@ -302,7 +306,16 @@
                                             if (item.Contains("false"))
                                                 mapDataClassInfo.IsIncludeInheritances = false;
                                         }
-
+                                        else if (item.Contains("IgnoreProperties"))
+                                        {
+                                            var nameSpaceAndName = GetNameSpaceAndName(item.Split('=').LastOrDefault());
+                                            var reg = new Regex("\".*?\"");
+                                            var matches = reg.Matches(nameSpaceAndName.Item2);
+                                            foreach (var str in matches)
+                                            {
+                                                mapDataClassInfo.IgnoreProperties.Add(str.ToString().Replace("\"", ""));
+                                            }
+                                        }
                                     }
                                     lineReadClassStarted = true;
                                 }
@@ -359,7 +372,7 @@
             builderResult.AppendLine("{");
             foreach (var modelInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ModelLevel))
             {
-                GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).Select(x => x.Body).FirstOrDefault());
+                GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault());
 
             }
             builderResult.AppendLine("}");
@@ -503,7 +516,7 @@
             builder.AppendLine();
         }
 
-        static void GenerateModelClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, string userCustomBody)
+        static void GenerateModelClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, MapDataClassInfo mapDataClassInfo)
         {
             string baseName = "";
             if (!string.IsNullOrEmpty(classReferenceInfo.BaseClassName))
@@ -512,10 +525,12 @@
             builder.AppendLine(prefix + "{");
             foreach (var propertyInfo in classReferenceInfo.Properties)
             {
+                if (mapDataClassInfo != null && mapDataClassInfo.IgnoreProperties.Contains(propertyInfo.Name))
+                    continue;
                 GenerateProperty(propertyInfo, prefix + prefix, true, builder);
             }
-            if (!string.IsNullOrEmpty(userCustomBody))
-                builder.AppendLine(userCustomBody);
+            if (mapDataClassInfo != null && !string.IsNullOrEmpty(mapDataClassInfo.Body))
+                builder.AppendLine(mapDataClassInfo.Body);
             builder.AppendLine();
 
             builder.AppendLine(prefix + "}");

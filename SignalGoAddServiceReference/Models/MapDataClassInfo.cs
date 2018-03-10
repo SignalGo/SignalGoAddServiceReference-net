@@ -15,5 +15,6 @@ namespace SignalGoAddServiceReference.Models
         public bool IsEnabledNotifyPropertyChangedBaseClass { get; set; } = true;
         public List<string> Inheritances { get; set; } = new List<string>();
         public List<string> Usings { get; set; } = new List<string>();
+        public List<string> IgnoreProperties { get; set; } = new List<string>();
     }
 }

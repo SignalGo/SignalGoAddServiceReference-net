@@ -7,24 +7,29 @@
              Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d"
-             d:DesignHeight="300" d:DesignWidth="300"
+             d:DesignHeight="400" d:DesignWidth="400"
              Name="MyToolWindow">
     <Grid  Background="White" >
         <Grid Margin="10" VerticalAlignment="Center">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Foreground="Black" Text="Server Address:" Margin="0,0,10,0"/>
-            <TextBox x:Name="txtServiceAddress" Grid.Column="1"/>
-            <TextBlock Foreground="Black" Grid.Row="1" Text="Service Name:" Margin="0,10,10,0"/>
-            <TextBox x:Name="txtServiceName" Grid.Row="1" Grid.Column="1" Margin="0,10,0,0"/>
-            <Button x:Name="btnAddService" Click="btnAddService_Click" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,10,0,0" Content="Add Service"/>
+            <Grid >
+                <TextBlock Margin="0,0,0,10" Text="This extension will create for you, in the client project, interfaces and classes needed by client to call methods you previously defined on server.  Both Sync and Async versions of methods will be created. You can use this extension or write your own manually.
+The code will be created into the &quot;Connected Services/ServiceName&quot; folder  (ServiceName is the name you choose here).
+
+The SignalGo Team" TextWrapping="Wrap"/>
+            </Grid>
+            <TextBlock Foreground="Black" Grid.Row="1" Text="SERVER ADDRESS  (example:  &quot;http://localhost:8080/MyAppName&quot;)" Margin="0,0,10,0"/>
+            <TextBox x:Name="txtServiceAddress" Grid.Row="2" />
+            <TextBlock Foreground="Black" Grid.Row="3" Text="SERVICE NAME:  (example: &quot;MyService&quot;)" Margin="0,10,10,0"/>
+            <TextBox x:Name="txtServiceName" Grid.Row="4" Margin="0,10,0,0"/>
+            <Button x:Name="btnAddService" Click="btnAddService_Click" Grid.Row="5" Margin="0,10,0,0" Content="Add Service"/>
         </Grid>
     </Grid>
 </UserControl>
