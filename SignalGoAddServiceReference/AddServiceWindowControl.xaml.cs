@@ -138,6 +138,7 @@
 
                 project.ProjectItems.AddFromFile(fullFilePath);
                 FinishedAction?.Invoke();
+                MessageBox.Show($"Service {serviceNameSpace} created", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
@@ -351,7 +352,7 @@
             builderResult.AppendLine("{");
             foreach (var classInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ServiceLevel))
             {
-                GenerateServiceClass(classInfo, "    ", builderResult, true);
+                GenerateServiceClass(classInfo, "    ", builderResult, true, "ServiceType.ServerService");
             }
             builderResult.AppendLine("}");
             builderResult.AppendLine("");
@@ -384,7 +385,7 @@
             builderResult.AppendLine("{");
             foreach (var callbackInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.CallbackLevel))
             {
-                GenerateServiceClass(callbackInfo, "    ", builderResult, false);
+                GenerateServiceClass(callbackInfo, "    ", builderResult, false, "ServiceType.ClientService");
             }
             builderResult.AppendLine("}");
             builderResult.AppendLine("");
@@ -403,9 +404,9 @@
             return builderResult.ToString();
         }
 
-        static void GenerateServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, bool generateAyncMethods)
+        static void GenerateServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, bool generateAyncMethods,string serviceType)
         {
-            string serviceAttribute = $@"[ServiceContract(""{classReferenceInfo.ServiceName}"", InstanceType.SingleInstance)]";
+            string serviceAttribute = $@"[ServiceContract(""{classReferenceInfo.ServiceName}"",{serviceType}, InstanceType.SingleInstance)]";
             builder.AppendLine(prefix + serviceAttribute);
             builder.AppendLine(prefix + "public interface I" + classReferenceInfo.Name);
             builder.AppendLine(prefix + "{");
