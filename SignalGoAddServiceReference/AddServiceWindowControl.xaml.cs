@@ -358,6 +358,17 @@
             builderResult.AppendLine("");
 
 
+            builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".StreamServices");
+            builderResult.AppendLine("{");
+            foreach (var classInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.StreamLevel))
+            {
+                GenerateServiceClass(classInfo, "    ", builderResult, true, "ServiceType.StreamService");
+            }
+            builderResult.AppendLine("}");
+            builderResult.AppendLine("");
+
+
+
             builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".HttpServices");
             builderResult.AppendLine("{");
             foreach (var httpClassInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.HttpServiceLevel))
