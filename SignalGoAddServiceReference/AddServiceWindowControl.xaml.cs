@@ -335,10 +335,10 @@
             {
                 builderResult.AppendLine("using " + item + ";");
             }
-            usingsOfClass.Add(namespaceReferenceInfo.Name + ".Services");
+            usingsOfClass.Add(namespaceReferenceInfo.Name + ".ServerServices");
             usingsOfClass.Add(namespaceReferenceInfo.Name + ".HttpServices");
             usingsOfClass.Add(namespaceReferenceInfo.Name + ".Models");
-            usingsOfClass.Add(namespaceReferenceInfo.Name + ".Callbacks");
+            usingsOfClass.Add(namespaceReferenceInfo.Name + ".ClientServices");
             usingsOfClass.Add(namespaceReferenceInfo.Name + ".Enums");
 
             foreach (var item in usingsOfClass.Where(x => !namespaceReferenceInfo.Usings.Contains(x)).Distinct())
@@ -348,7 +348,7 @@
             builderResult.AppendLine("");
 
 
-            builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".Services");
+            builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".ServerServices");
             builderResult.AppendLine("{");
             foreach (var classInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ServiceLevel))
             {
@@ -392,7 +392,7 @@
 
 
 
-            builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".Callbacks");
+            builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".ClientServices");
             builderResult.AppendLine("{");
             foreach (var callbackInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.CallbackLevel))
             {
@@ -415,11 +415,12 @@
             return builderResult.ToString();
         }
 
-        static void GenerateServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, bool generateAyncMethods,string serviceType)
+        static void GenerateServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, bool generateAyncMethods, string serviceType)
         {
+            bool isInterface = classReferenceInfo.Name.StartsWith("I");
             string serviceAttribute = $@"[ServiceContract(""{classReferenceInfo.ServiceName}"",{serviceType}, InstanceType.SingleInstance)]";
             builder.AppendLine(prefix + serviceAttribute);
-            builder.AppendLine(prefix + "public interface I" + classReferenceInfo.Name);
+            builder.AppendLine(prefix + "public interface " + (isInterface ? "" : "I") + classReferenceInfo.Name);
             builder.AppendLine(prefix + "{");
             foreach (var methodInfo in classReferenceInfo.Methods)
             {
