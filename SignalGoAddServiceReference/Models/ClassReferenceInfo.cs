@@ -16,6 +16,7 @@ namespace SignalGo.Shared.Models.ServiceReference
     }
     public class ClassReferenceInfo
     {
+        public string NameSpace { get; set; }
         public ClassReferenceType Type { get; set; }
         public string Name { get; set; }
         public string ServiceName { get; set; }

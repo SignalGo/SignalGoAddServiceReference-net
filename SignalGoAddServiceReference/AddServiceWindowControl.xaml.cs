@@ -211,7 +211,7 @@
                             while ((line = streamReader.ReadLine()) != null)
                             {
                                 string lineResult = line;
-                                if (lineResult.Trim().StartsWith("using "))
+                                if (lineResult.Trim().StartsWith("using ") && lineResult.Trim().EndsWith(";") && !lineResult.Contains("("))
                                 {
                                     var uses = GetListOfUsing(lineResult);
                                     mapDataClassInfo.Usings.AddRange(uses);
@@ -337,9 +337,9 @@
             }
             usingsOfClass.Add(namespaceReferenceInfo.Name + ".ServerServices");
             usingsOfClass.Add(namespaceReferenceInfo.Name + ".HttpServices");
-            usingsOfClass.Add(namespaceReferenceInfo.Name + ".Models");
+            //usingsOfClass.Add(namespaceReferenceInfo.Name + ".Models");
             usingsOfClass.Add(namespaceReferenceInfo.Name + ".ClientServices");
-            usingsOfClass.Add(namespaceReferenceInfo.Name + ".Enums");
+            //usingsOfClass.Add(namespaceReferenceInfo.Name + ".Enums");
 
             foreach (var item in usingsOfClass.Where(x => !namespaceReferenceInfo.Usings.Contains(x)).Distinct())
             {
@@ -379,17 +379,52 @@
             builderResult.AppendLine("}");
             builderResult.AppendLine("");
 
+            //Dictionary<string, string> AddedModels = new Dictionary<string, string>();
+            //Dictionary<string, List<ClassReferenceInfo>> NeedToAddModels = new Dictionary<string, List<ClassReferenceInfo>>();
 
-            builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".Models");
-            builderResult.AppendLine("{");
-            foreach (var modelInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ModelLevel))
+            foreach (var groupInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ModelLevel).GroupBy(x => x.NameSpace))
             {
-                GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault());
-
+                builderResult.AppendLine("namespace " + groupInfo.Key);
+                builderResult.AppendLine("{");
+                foreach (var modelInfo in groupInfo)
+                {
+                    GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault());
+                }
+                builderResult.AppendLine("}");
+                builderResult.AppendLine("");
+                //if (AddedModels.ContainsKey(modelInfo.Name))
+                //{
+                //    var find = NeedToAddModels.Where(x => !x.Value.Any(y => y.Name == modelInfo.Name)).Select(x => x.Value).FirstOrDefault();
+                //    if (find != null)
+                //        find.Add(modelInfo);
+                //    else
+                //    {
+                //        var list = new List<ClassReferenceInfo>();
+                //        NeedToAddModels.Add(nameSpaceName + (NeedToAddModels.Count + 2), list);
+                //        list.Add(modelInfo);
+                //    }
+                //}
+                //else
+                //{
+                //    AddedModels.Add(modelInfo.Name, nameSpaceName);
+                //}
             }
-            builderResult.AppendLine("}");
-            builderResult.AppendLine("");
+            //builderResult.AppendLine("}");
+            //builderResult.AppendLine("");
 
+            //add duplicate models name to another name spaces
+            //foreach (var item in NeedToAddModels)
+            //{
+            //    nameSpaceName = item.Key;
+            //    builderResult.AppendLine(nameSpaceName);
+            //    builderResult.AppendLine("{");
+            //    foreach (var modelInfo in item.Value)
+            //    {
+            //        GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault());
+            //    }
+            //    builderResult.AppendLine("}");
+            //    builderResult.AppendLine();
+            //}
 
 
             builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".ClientServices");
@@ -402,14 +437,21 @@
             builderResult.AppendLine("");
 
 
-            builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".Enums");
-            builderResult.AppendLine("{");
-            foreach (var enumInfo in namespaceReferenceInfo.Enums)
+            //builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".Enums");
+            //builderResult.AppendLine("{");
+            foreach (var groupInfo in namespaceReferenceInfo.Enums.GroupBy(x => x.NameSpace))
             {
-                GenerateModelEnum(enumInfo, "    ", builderResult);
+                builderResult.AppendLine("namespace " + groupInfo.Key);
+                builderResult.AppendLine("{");
+                foreach (var enumInfo in groupInfo)
+                {
+                    GenerateModelEnum(enumInfo, "    ", builderResult);
+                }
+                builderResult.AppendLine("}");
+                builderResult.AppendLine("");
             }
-            builderResult.AppendLine("}");
-            builderResult.AppendLine("");
+            //builderResult.AppendLine("}");
+            //builderResult.AppendLine("");
 
 
             return builderResult.ToString();
