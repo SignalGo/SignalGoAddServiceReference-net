@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SignalGoAddServiceReference.LanguageMaps;
 
 namespace SignalGoAddServiceReference
 {
@@ -137,7 +138,7 @@ namespace SignalGoAddServiceReference
 
                     if (Uri.TryCreate(lines[0], UriKind.Absolute, out Uri uri))
                     {
-                        AddServiceWindowControl.DownloadService(uri, directory, lines[1]);
+                        BaseLanguageMap.DownloadService(uri, directory, lines[1], int.Parse(lines[2]));
                         MessageBox.Show("Update success!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     else

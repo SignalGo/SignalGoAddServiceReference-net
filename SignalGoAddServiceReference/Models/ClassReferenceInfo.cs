@@ -12,7 +12,8 @@ namespace SignalGo.Shared.Models.ServiceReference
         HttpServiceLevel,
         CallbackLevel,
         ModelLevel,
-        StreamLevel
+        StreamLevel,
+        OneWayLevel
     }
     public class ClassReferenceInfo
     {

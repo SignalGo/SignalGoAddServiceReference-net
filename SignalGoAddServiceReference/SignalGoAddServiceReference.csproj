@@ -64,6 +64,9 @@
     </Compile>
     <Compile Include="AddSignalGoService.cs" />
     <Compile Include="AddSignalGoServicePackage.cs" />
+    <Compile Include="LanguageMaps\BaseLanguageMap.cs" />
+    <Compile Include="LanguageMaps\CsharpLanguageMap.cs" />
+    <Compile Include="LanguageMaps\TypeScriptLanguageMap.cs" />
     <Compile Include="Models\ClassReferenceInfo.cs" />
     <Compile Include="Models\EnumReferenceInfo.cs" />
     <Compile Include="Models\KeyValue.cs" />
