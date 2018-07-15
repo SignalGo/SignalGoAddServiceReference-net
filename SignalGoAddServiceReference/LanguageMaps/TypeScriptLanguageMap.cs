@@ -24,7 +24,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 if (projectItem.FileCount == 0)
                     continue;
                 string fileName = projectItem.FileNames[0];
-                if (Path.GetExtension(fileName).ToLower() == ".cs")
+                if (Path.GetExtension(fileName).ToLower() == ".ts")
                 {
                     var dir = Path.GetDirectoryName(fileName);
                     if (File.Exists(Path.Combine(dir, "setting.signalgo")))
@@ -45,12 +45,12 @@ namespace SignalGoAddServiceReference.LanguageMaps
                             while ((line = streamReader.ReadLine()) != null)
                             {
                                 string lineResult = line;
-                                if (lineResult.Trim().StartsWith("using ") && lineResult.Trim().EndsWith(";") && !lineResult.Contains("("))
-                                {
-                                    var uses = GetListOfUsing(lineResult);
-                                    mapDataClassInfo.Usings.AddRange(uses);
-                                    usingsOfClass.AddRange(uses);
-                                }
+                                //if (lineResult.Trim().StartsWith("using ") && lineResult.Trim().EndsWith(";") && !lineResult.Contains("("))
+                                //{
+                                //    var uses = GetListOfUsing(lineResult);
+                                //    mapDataClassInfo.Usings.AddRange(uses);
+                                //    usingsOfClass.AddRange(uses);
+                                //}
 
                                 if (findStartBlock && (line.Contains("{") || line.Contains("}")))
                                 {
@@ -165,7 +165,8 @@ namespace SignalGoAddServiceReference.LanguageMaps
             StringBuilder builderResult = new StringBuilder();
 
 
-
+            //builderResult.AppendLine("import { List } from 'src/app/SharedComponents/linqts';");
+            builderResult.AppendLine($"export module {serviceName} {{");
             //builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".ServerServices");
             //builderResult.AppendLine("{");
             //foreach (var classInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ServiceLevel))
@@ -199,10 +200,11 @@ namespace SignalGoAddServiceReference.LanguageMaps
 
             //Dictionary<string, string> AddedModels = new Dictionary<string, string>();
             //Dictionary<string, List<ClassReferenceInfo>> NeedToAddModels = new Dictionary<string, List<ClassReferenceInfo>>();
-
+            List<string> namespaces = new List<string>();
             foreach (var groupInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ModelLevel).GroupBy(x => x.NameSpace))
             {
-                builderResult.AppendLine("namespace " + groupInfo.Key + " {");
+                namespaces.Add(groupInfo.Key);
+                builderResult.AppendLine("export namespace " + groupInfo.Key + " {");
                 foreach (var modelInfo in groupInfo)
                 {
                     GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault());
@@ -214,8 +216,14 @@ namespace SignalGoAddServiceReference.LanguageMaps
             foreach (var httpClassInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.HttpServiceLevel))
             {
                 StringBuilder builder = new StringBuilder();
-                GenerateHttpServiceClass(httpClassInfo, "    ", builder);
-                File.WriteAllText(Path.Combine(savePath, httpClassInfo.ServiceName + "Service.ts"), builder.ToString(), Encoding.UTF8);
+                //builder.AppendLine("import { List } from 'src/app/SharedComponents/linqts';");
+                GenerateHttpServiceClass(httpClassInfo, "    ", builder, serviceName);
+                var result = builder.ToString();
+                foreach (var space in namespaces)
+                {
+                    result = result.Replace(space, serviceName + "." + space);
+                }
+                File.WriteAllText(Path.Combine(savePath, httpClassInfo.ServiceName + "Service.ts"), result, Encoding.UTF8);
             }
             //builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".ClientServices");
             //builderResult.AppendLine("{");
@@ -229,7 +237,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
 
             foreach (var groupInfo in namespaceReferenceInfo.Enums.GroupBy(x => x.NameSpace))
             {
-                builderResult.AppendLine("declare namespace " + groupInfo.Key + " {");
+                builderResult.AppendLine("export namespace " + groupInfo.Key + " {");
                 foreach (var enumInfo in groupInfo)
                 {
                     GenerateModelEnum(enumInfo, "    ", builderResult);
@@ -237,16 +245,18 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 builderResult.AppendLine("}");
                 builderResult.AppendLine("");
             }
+            builderResult.AppendLine("}");
 
 
             return builderResult.ToString();
         }
 
 
-        static void GenerateMethod(string serviceName, MethodReferenceInfo methodInfo, string prefix, StringBuilder builder, bool doSemicolon = true)
+        static void GenerateMethod(string serviceName, MethodReferenceInfo methodInfo, string prefix, StringBuilder resultBuilder, bool doSemicolon, string baseServiceName)
         {
+            StringBuilder builder = new StringBuilder();
             var returnTypeName = GetReturnTypeName(methodInfo.ReturnTypeName);
-            builder.AppendLine($"{prefix}{methodInfo.Name}({GenerateMethodParameters(methodInfo)}): Promise<{returnTypeName}> {{");
+            builder.AppendLine($"{prefix}{methodInfo.Name}({GenerateMethodParameters(methodInfo, baseServiceName)}): Promise<{returnTypeName}> {{");
             builder.AppendLine($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.Name}', {{");
             int index = 0;
             foreach (var item in methodInfo.Parameters)
@@ -258,6 +268,9 @@ namespace SignalGoAddServiceReference.LanguageMaps
             }
             builder.AppendLine(prefix + prefix + "});");
             builder.AppendLine(prefix + "}");
+            var result = builder.ToString();
+            if (!result.Contains("SignalGo.Shared"))
+                resultBuilder.AppendLine(result);
         }
 
         static void GenerateProperty(PropertyReferenceInfo propertyInfo, string prefix, bool generateOnPropertyChanged, StringBuilder builder)
@@ -265,19 +278,19 @@ namespace SignalGoAddServiceReference.LanguageMaps
             bool isNullable = propertyInfo.ReturnTypeName.Contains("?");
             propertyInfo.ReturnTypeName = GetReturnTypeName(propertyInfo.ReturnTypeName);
             //create field
-            builder.AppendLine($"{prefix}private _{propertyInfo.Name}{(isNullable ? "?" : "")}: {propertyInfo.ReturnTypeName};");
+            builder.AppendLine($"{prefix}{propertyInfo.Name}{(isNullable ? "?" : "")}: {propertyInfo.ReturnTypeName};");
 
-            builder.AppendLine($"{prefix}public get {propertyInfo.Name}(): {propertyInfo.ReturnTypeName} {{");
-            builder.AppendLine($"{prefix + prefix }return this._{propertyInfo.Name};");
-            builder.AppendLine($"{prefix}}}");
+            //builder.AppendLine($"{prefix}public get {propertyInfo.Name}(): {propertyInfo.ReturnTypeName} {{");
+            //builder.AppendLine($"{prefix + prefix }return this._{propertyInfo.Name};");
+            //builder.AppendLine($"{prefix}}}");
 
-            builder.AppendLine($"{prefix}public set {propertyInfo.Name}(v: {propertyInfo.ReturnTypeName}) {{");
-            builder.AppendLine($"{prefix + prefix}this._{propertyInfo.Name} = v;");
+            //builder.AppendLine($"{prefix}public set {propertyInfo.Name}(v: {propertyInfo.ReturnTypeName}) {{");
+            //builder.AppendLine($"{prefix + prefix}this._{propertyInfo.Name} = v;");
 
-            if (generateOnPropertyChanged)
-                builder.AppendLine($"{prefix + prefix + prefix}OnPropertyChanged(nameof({propertyInfo.Name}));");
+            //if (generateOnPropertyChanged)
+            //    builder.AppendLine($"{prefix + prefix + prefix}OnPropertyChanged(nameof({propertyInfo.Name}));");
 
-            builder.AppendLine($"{prefix}}}");
+            //builder.AppendLine($"{prefix}}}");
 
             builder.AppendLine();
         }
@@ -314,12 +327,13 @@ namespace SignalGoAddServiceReference.LanguageMaps
             //}
             if (name.Contains("System.Collections.Generic.ICollection<"))
             {
+                //name = name.Replace("System.Collections.Generic.ICollection<", "List<");
                 name = RemoveBlockToArray("System.Collections.Generic.ICollection<", name);
             }
             else if (name.Contains("System.Collections.Generic.List<"))
             {
+                //name = name.Replace("System.Collections.Generic.List<", "List<");
                 name = RemoveBlockToArray("System.Collections.Generic.List<", name);
-                //  name = name.Replace("System.Collections.Generic.List<", "").Replace(">", "[]");
             }
             if (RenamedModels.Any(x => x.Value == name))
                 return RenamedModels.Where(x => x.Value == name).Select(x => x.Key).FirstOrDefault();
@@ -367,7 +381,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             return builder.ToString();
         }
 
-        static string GenerateMethodParameters(MethodReferenceInfo methodInfo)
+        static string GenerateMethodParameters(MethodReferenceInfo methodInfo, string baseServiceName)
         {
             StringBuilder builder = new StringBuilder();
             int index = 0;
@@ -381,19 +395,20 @@ namespace SignalGoAddServiceReference.LanguageMaps
             return builder.ToString();
         }
 
-        static void GenerateHttpServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder)
+        static void GenerateHttpServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, string baseServiceName)
         {
-            builder.AppendLine(@"import { Injectable } from '@angular/core';
-import { ServerConnectionService } from './server-connection.service';
-@Injectable({
+            builder.AppendLine($@"import {{ Injectable }} from '@angular/core';
+import {{ ServerConnectionService }} from './server-connection.service';
+import {{ {baseServiceName} }} from './Reference';
+@Injectable({{
   providedIn: 'root'
-})");
+}})");
             string serviceName = FirstCharToUpper(classReferenceInfo.ServiceName);
             builder.AppendLine(prefix + "export class " + serviceName + "Service {");
             builder.AppendLine(prefix + prefix + "constructor(private server: ServerConnectionService) { }");
             foreach (var methodInfo in classReferenceInfo.Methods)
             {
-                GenerateMethod(serviceName, methodInfo, prefix + prefix, builder, false);
+                GenerateMethod(serviceName, methodInfo, prefix + prefix, builder, false, baseServiceName);
                 //GenerateAsyncMethod(methodInfo, prefix + prefix, builder, false);
             }
             builder.AppendLine(prefix + "}");
@@ -411,7 +426,7 @@ import { ServerConnectionService } from './server-connection.service';
 
         static void GenerateModelEnum(EnumReferenceInfo enumReferenceInfo, string prefix, StringBuilder builder)
         {
-            builder.AppendLine(prefix + "enum " + enumReferenceInfo.Name + " {");//+ " : " + enumReferenceInfo.TypeName
+            builder.AppendLine(prefix + "export enum " + enumReferenceInfo.Name + " {");//+ " : " + enumReferenceInfo.TypeName
             foreach (var name in enumReferenceInfo.KeyValues)
             {
                 builder.AppendLine($"{prefix + prefix}{name.Key} = {name.Value},");
