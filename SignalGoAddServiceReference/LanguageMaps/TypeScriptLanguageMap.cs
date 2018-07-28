@@ -257,16 +257,23 @@ namespace SignalGoAddServiceReference.LanguageMaps
             StringBuilder builder = new StringBuilder();
             var returnTypeName = GetReturnTypeName(methodInfo.ReturnTypeName);
             builder.AppendLine($"{prefix}{methodInfo.Name}({GenerateMethodParameters(methodInfo, baseServiceName)}): Promise<{returnTypeName}> {{");
-            builder.AppendLine($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.Name}', {{");
+            builder.Append($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
             int index = 0;
-            foreach (var item in methodInfo.Parameters)
+            if (methodInfo.Parameters.Count == 0)
+                builder.AppendLine("null");
+            else
             {
-                if (index > 0)
-                    builder.Append(", ");
-                builder.AppendLine(prefix + prefix + prefix + item.Name + ":" + item.Name);
-                index++;
+                builder.AppendLine(" {");
+                foreach (var item in methodInfo.Parameters)
+                {
+                    if (index > 0)
+                        builder.Append(", ");
+                    builder.AppendLine(prefix + prefix + prefix + item.Name + ":" + item.Name);
+                    index++;
+                }
+                builder.Append(prefix + prefix + "}");
             }
-            builder.AppendLine(prefix + prefix + "});");
+            builder.AppendLine(");");
             builder.AppendLine(prefix + "}");
             var result = builder.ToString();
             if (!result.Contains("SignalGo.Shared"))
@@ -301,6 +308,12 @@ namespace SignalGoAddServiceReference.LanguageMaps
             {
                 { "bool","boolean" },
                 { "int","number" },
+                { "System.Int16","number" },
+                { "System.Int32","number" },
+                { "System.Int64","number" },
+                { "System.Int16[]","number[]" },
+                { "System.Int32[]","number[]" },
+                { "System.Int64[]","number[]" },
                 { "long","number" },
                 { "double","number" },
                 { "byte","number" },
