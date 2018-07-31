@@ -221,6 +221,8 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 var result = builder.ToString();
                 foreach (var space in namespaces)
                 {
+                    if (result.Contains(serviceName + "." + space))
+                        continue;
                     result = result.Replace(space, serviceName + "." + space);
                 }
                 File.WriteAllText(Path.Combine(savePath, httpClassInfo.ServiceName + "Service.ts"), result, Encoding.UTF8);
