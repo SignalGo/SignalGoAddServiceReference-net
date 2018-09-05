@@ -367,7 +367,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             //    builder.AppendLine($"{prefix + prefix}return System.Threading.Tasks.{returnType}.Factory.StartNew(() => {result});");
             //}
             //else
-            builder.AppendLine($"{prefix + prefix}return System.Threading.Tasks.{returnType}.Factory.StartNew(() => {result});");
+            builder.AppendLine($"{prefix + prefix}return System.Threading.Tasks.{returnType}.Run(() => {result});");
 
             builder.AppendLine($"{prefix}}}");
         }
@@ -436,7 +436,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             foreach (var item in methodInfo.Parameters)
             {
                 builder.Append(", ");
-                builder.Append($"{item.Name}");
+                builder.Append($"new SignalGo.Shared.Models.ParameterInfo() {{  Name = \"{item.Name}\", Value = SignalGo.Client.ClientSerializationHelper.SerializeObject({item.Name}) }}");
             }
             return builder.ToString();
         }

@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace SignalGoAddServiceReference.LanguageMaps
 {
@@ -16,7 +15,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
         public static string CalculateMapData(string savePath, NamespaceReferenceInfo namespaceReferenceInfo, string serviceName)
         {
             RenamedModels.Clear();
-            var project = BaseLanguageMap.GetActiveProject();
+            Project project = BaseLanguageMap.GetActiveProject();
             List<MapDataClassInfo> MapDataClassInfoes = new List<MapDataClassInfo>();
             List<string> usingsOfClass = new List<string>();
             foreach (ProjectItem projectItem in BaseLanguageMap.GetAllProjectItemsWithoutServices(project.ProjectItems))
@@ -26,13 +25,13 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 string fileName = projectItem.FileNames[0];
                 if (Path.GetExtension(fileName).ToLower() == ".ts")
                 {
-                    var dir = Path.GetDirectoryName(fileName);
+                    string dir = Path.GetDirectoryName(fileName);
                     if (File.Exists(Path.Combine(dir, "setting.signalgo")))
                         continue;
-                    var fileText = File.ReadAllText(fileName, Encoding.UTF8);
+                    string fileText = File.ReadAllText(fileName, Encoding.UTF8);
                     if (fileText.Contains("ModelMappAttribute(") || fileText.Contains("ModelMapp("))
                     {
-                        using (var streamReader = new StringReader(fileText))
+                        using (StringReader streamReader = new StringReader(fileText))
                         {
                             string line = "";
                             bool lineReadClassStarted = false;
@@ -54,7 +53,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
 
                                 if (findStartBlock && (line.Contains("{") || line.Contains("}")))
                                 {
-                                    var countPlus = line.Count(x => x == '{') - line.Count(x => x == '}');
+                                    int countPlus = line.Count(x => x == '{') - line.Count(x => x == '}');
 
                                     if (findEndBlock == int.MaxValue)
                                         findEndBlock = countPlus;
@@ -65,7 +64,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
                                     {
                                         mapDataClassInfo.Body = builder.ToString();
                                         builder.Clear();
-                                        var find = MapDataClassInfoes.FirstOrDefault(x => x.Name == mapDataClassInfo.Name && (usingsOfClass.Contains(serviceName) || x.ServiceName == serviceName));
+                                        MapDataClassInfo find = MapDataClassInfoes.FirstOrDefault(x => x.Name == mapDataClassInfo.Name && (usingsOfClass.Contains(serviceName) || x.ServiceName == serviceName));
                                         if (find != null)
                                         {
                                             find.Body += Environment.NewLine + mapDataClassInfo.Body;
@@ -88,13 +87,13 @@ namespace SignalGoAddServiceReference.LanguageMaps
                                 }
                                 else if (lineReadClassStarted && line.Contains(" class "))
                                 {
-                                    var splitInheritance = line.Split(':', ',');
+                                    string[] splitInheritance = line.Split(':', ',');
                                     //multiple inheritance
                                     if (splitInheritance.Length > 1)
                                     {
-                                        foreach (var item in splitInheritance.Skip(1))
+                                        foreach (string item in splitInheritance.Skip(1))
                                         {
-                                            var nameSpaceAndName = GetNameSpaceAndName(item);
+                                            Tuple<string, string> nameSpaceAndName = GetNameSpaceAndName(item);
                                             if (!string.IsNullOrEmpty(nameSpaceAndName.Item1))
                                                 usingsOfClass.Add(nameSpaceAndName.Item1);
 
@@ -115,12 +114,12 @@ namespace SignalGoAddServiceReference.LanguageMaps
                                     }
 
 
-                                    var split = SplitWithIgnoreQuotes(lineResult.Substring(index + length), ",");
-                                    foreach (var item in split)
+                                    string[] split = SplitWithIgnoreQuotes(lineResult.Substring(index + length), ",");
+                                    foreach (string item in split)
                                     {
                                         if (item.ToLower().Contains("maptotype") || item.Contains("typeof"))
                                         {
-                                            var nameSpaceAndName = GetNameSpaceAndName(item.Split('=').LastOrDefault());
+                                            Tuple<string, string> nameSpaceAndName = GetNameSpaceAndName(item.Split('=').LastOrDefault());
                                             if (!string.IsNullOrEmpty(nameSpaceAndName.Item1))
                                             {
                                                 usingsOfClass.Add(nameSpaceAndName.Item1);
@@ -142,10 +141,10 @@ namespace SignalGoAddServiceReference.LanguageMaps
                                         }
                                         else if (item.Contains("IgnoreProperties"))
                                         {
-                                            var nameSpaceAndName = GetNameSpaceAndName(item.Split('=').LastOrDefault());
-                                            var reg = new Regex("\".*?\"");
-                                            var matches = reg.Matches(nameSpaceAndName.Item2);
-                                            foreach (var str in matches)
+                                            Tuple<string, string> nameSpaceAndName = GetNameSpaceAndName(item.Split('=').LastOrDefault());
+                                            Regex reg = new Regex("\".*?\"");
+                                            MatchCollection matches = reg.Matches(nameSpaceAndName.Item2);
+                                            foreach (object str in matches)
                                             {
                                                 mapDataClassInfo.IgnoreProperties.Add(str.ToString().Replace("\"", ""));
                                             }
@@ -201,11 +200,11 @@ namespace SignalGoAddServiceReference.LanguageMaps
             //Dictionary<string, string> AddedModels = new Dictionary<string, string>();
             //Dictionary<string, List<ClassReferenceInfo>> NeedToAddModels = new Dictionary<string, List<ClassReferenceInfo>>();
             List<string> namespaces = new List<string>();
-            foreach (var groupInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ModelLevel).GroupBy(x => x.NameSpace))
+            foreach (IGrouping<string, ClassReferenceInfo> groupInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ModelLevel).GroupBy(x => x.NameSpace))
             {
                 namespaces.Add(groupInfo.Key);
                 builderResult.AppendLine("export namespace " + groupInfo.Key + " {");
-                foreach (var modelInfo in groupInfo)
+                foreach (ClassReferenceInfo modelInfo in groupInfo)
                 {
                     GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault());
                 }
@@ -213,13 +212,13 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 builderResult.AppendLine("");
             }
 
-            foreach (var httpClassInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.HttpServiceLevel))
+            foreach (ClassReferenceInfo httpClassInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.HttpServiceLevel))
             {
                 StringBuilder builder = new StringBuilder();
                 //builder.AppendLine("import { List } from 'src/app/SharedComponents/linqts';");
                 GenerateHttpServiceClass(httpClassInfo, "    ", builder, serviceName);
-                var result = builder.ToString();
-                foreach (var space in namespaces)
+                string result = builder.ToString();
+                foreach (string space in namespaces)
                 {
                     if (result.Contains(serviceName + "." + space))
                         continue;
@@ -237,10 +236,10 @@ namespace SignalGoAddServiceReference.LanguageMaps
             //builderResult.AppendLine("");
 
 
-            foreach (var groupInfo in namespaceReferenceInfo.Enums.GroupBy(x => x.NameSpace))
+            foreach (IGrouping<string, EnumReferenceInfo> groupInfo in namespaceReferenceInfo.Enums.GroupBy(x => x.NameSpace))
             {
                 builderResult.AppendLine("export namespace " + groupInfo.Key + " {");
-                foreach (var enumInfo in groupInfo)
+                foreach (EnumReferenceInfo enumInfo in groupInfo)
                 {
                     GenerateModelEnum(enumInfo, "    ", builderResult);
                 }
@@ -253,11 +252,10 @@ namespace SignalGoAddServiceReference.LanguageMaps
             return builderResult.ToString();
         }
 
-
-        static void GenerateMethod(string serviceName, MethodReferenceInfo methodInfo, string prefix, StringBuilder resultBuilder, bool doSemicolon, string baseServiceName)
+        private static void GenerateMethod(string serviceName, MethodReferenceInfo methodInfo, string prefix, StringBuilder resultBuilder, bool doSemicolon, string baseServiceName)
         {
             StringBuilder builder = new StringBuilder();
-            var returnTypeName = GetReturnTypeName(methodInfo.ReturnTypeName);
+            string returnTypeName = GetReturnTypeName(methodInfo.ReturnTypeName);
             builder.AppendLine($"{prefix}{methodInfo.Name}({GenerateMethodParameters(methodInfo, baseServiceName)}): Promise<{returnTypeName}> {{");
             builder.Append($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
             int index = 0;
@@ -266,7 +264,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             else
             {
                 builder.AppendLine(" {");
-                foreach (var item in methodInfo.Parameters)
+                foreach (ParameterReferenceInfo item in methodInfo.Parameters)
                 {
                     if (index > 0)
                         builder.Append(", ");
@@ -277,12 +275,12 @@ namespace SignalGoAddServiceReference.LanguageMaps
             }
             builder.AppendLine(");");
             builder.AppendLine(prefix + "}");
-            var result = builder.ToString();
+            string result = builder.ToString();
             if (!result.Contains("SignalGo.Shared"))
                 resultBuilder.AppendLine(result);
         }
 
-        static void GenerateProperty(PropertyReferenceInfo propertyInfo, string prefix, bool generateOnPropertyChanged, StringBuilder builder)
+        private static void GenerateProperty(PropertyReferenceInfo propertyInfo, string prefix, bool generateOnPropertyChanged, StringBuilder builder)
         {
             bool isNullable = propertyInfo.ReturnTypeName.Contains("?");
             propertyInfo.ReturnTypeName = GetReturnTypeName(propertyInfo.ReturnTypeName);
@@ -304,7 +302,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             builder.AppendLine();
         }
 
-        static string GetReturnTypeName(string name)
+        private static string GetReturnTypeName(string name)
         {
             Dictionary<string, string> returnTypes = new Dictionary<string, string>()
             {
@@ -327,7 +325,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             if (returnTypes.ContainsKey(name))
                 name = name.Replace(name, returnTypes[name]);
 
-            foreach (var item in returnTypes)
+            foreach (KeyValuePair<string, string> item in returnTypes)
             {
                 if (name.Contains("<" + item.Key + ">"))
                     name = name.Replace("<" + item.Key + ">", "<" + item.Value + ">");
@@ -350,12 +348,35 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 //name = name.Replace("System.Collections.Generic.List<", "List<");
                 name = RemoveBlockToArray("System.Collections.Generic.List<", name);
             }
-            if (RenamedModels.Any(x => x.Value == name))
-                return RenamedModels.Where(x => x.Value == name).Select(x => x.Key).FirstOrDefault();
+            string findName = name;
+            bool hasSuffix = false;
+            if (name.Contains("<"))
+            {
+                findName = name.Substring(0, name.IndexOf('<'));
+                hasSuffix = true;
+            }
+
+            KeyValuePair<string, string>? find = RenamedModels.Where(x => (!hasSuffix && x.Value == findName) || (hasSuffix && x.Value.Contains("<") && x.Value.Substring(0, x.Value.IndexOf('<')) == findName)).Select(x => (KeyValuePair<string, string>?)x).FirstOrDefault();
+            if (find != null)
+            {
+                if (hasSuffix)
+                {
+                    return ReplaceSuffix(find.Value.Key, name.Substring(name.IndexOf('<')+1, name.IndexOf('>') - name.IndexOf('<')-1));
+                }
+                return find.Value.Key;
+            }
             return name;
         }
 
-        static string RemoveBlockToArray(string title, string name)
+        static string ReplaceSuffix(string baseText,string newString)
+        {
+            var aStringBuilder = new StringBuilder(baseText);
+            aStringBuilder.Remove(baseText.IndexOf('<')+1, baseText.IndexOf('>') - baseText.IndexOf('<')-1);
+            aStringBuilder.Insert(baseText.IndexOf('<')+1, newString);
+            return aStringBuilder.ToString();
+        }
+
+        private static string RemoveBlockToArray(string title, string name)
         {
             if (name.Contains(title))
             {
@@ -363,7 +384,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 int start = name.IndexOf(block) + block.Length;
                 int findLast = start;
                 int canBreak = 0;
-                foreach (var item in name.Substring(start))
+                foreach (char item in name.Substring(start))
                 {
                     if (item == '<')
                         canBreak++;
@@ -377,7 +398,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
                     }
                     start++;
                 }
-                var aStringBuilder = new StringBuilder(name);
+                StringBuilder aStringBuilder = new StringBuilder(name);
                 aStringBuilder.Remove(start, 1);
                 aStringBuilder.Insert(start, "[]");
                 name = aStringBuilder.ToString();
@@ -385,10 +406,11 @@ namespace SignalGoAddServiceReference.LanguageMaps
             }
             return name;
         }
-        static string GenerateMethodParametersWitoutTypes(MethodReferenceInfo methodInfo)
+
+        private static string GenerateMethodParametersWitoutTypes(MethodReferenceInfo methodInfo)
         {
             StringBuilder builder = new StringBuilder();
-            foreach (var item in methodInfo.Parameters)
+            foreach (ParameterReferenceInfo item in methodInfo.Parameters)
             {
                 builder.Append(", ");
                 builder.Append($"{item.Name}");
@@ -396,11 +418,11 @@ namespace SignalGoAddServiceReference.LanguageMaps
             return builder.ToString();
         }
 
-        static string GenerateMethodParameters(MethodReferenceInfo methodInfo, string baseServiceName)
+        private static string GenerateMethodParameters(MethodReferenceInfo methodInfo, string baseServiceName)
         {
             StringBuilder builder = new StringBuilder();
             int index = 0;
-            foreach (var item in methodInfo.Parameters)
+            foreach (ParameterReferenceInfo item in methodInfo.Parameters)
             {
                 if (index > 0)
                     builder.Append(", ");
@@ -410,7 +432,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             return builder.ToString();
         }
 
-        static void GenerateHttpServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, string baseServiceName)
+        private static void GenerateHttpServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, string baseServiceName)
         {
             builder.AppendLine($@"import {{ Injectable }} from '@angular/core';
 import {{ ServerConnectionService }} from './server-connection.service';
@@ -421,7 +443,7 @@ import {{ {baseServiceName} }} from './Reference';
             string serviceName = FirstCharToUpper(classReferenceInfo.ServiceName);
             builder.AppendLine(prefix + "export class " + serviceName + "Service {");
             builder.AppendLine(prefix + prefix + "constructor(private server: ServerConnectionService) { }");
-            foreach (var methodInfo in classReferenceInfo.Methods)
+            foreach (MethodReferenceInfo methodInfo in classReferenceInfo.Methods)
             {
                 GenerateMethod(serviceName, methodInfo, prefix + prefix, builder, false, baseServiceName);
                 //GenerateAsyncMethod(methodInfo, prefix + prefix, builder, false);
@@ -429,7 +451,7 @@ import {{ {baseServiceName} }} from './Reference';
             builder.AppendLine(prefix + "}");
         }
 
-        static string FirstCharToUpper(string input)
+        private static string FirstCharToUpper(string input)
         {
             switch (input)
             {
@@ -439,10 +461,10 @@ import {{ {baseServiceName} }} from './Reference';
             }
         }
 
-        static void GenerateModelEnum(EnumReferenceInfo enumReferenceInfo, string prefix, StringBuilder builder)
+        private static void GenerateModelEnum(EnumReferenceInfo enumReferenceInfo, string prefix, StringBuilder builder)
         {
             builder.AppendLine(prefix + "export enum " + enumReferenceInfo.Name + " {");//+ " : " + enumReferenceInfo.TypeName
-            foreach (var name in enumReferenceInfo.KeyValues)
+            foreach (SignalGo.Shared.Models.KeyValue<string, string> name in enumReferenceInfo.KeyValues)
             {
                 builder.AppendLine($"{prefix + prefix}{name.Key} = {name.Value},");
             }
@@ -450,8 +472,9 @@ import {{ {baseServiceName} }} from './Reference';
             builder.AppendLine();
         }
 
-        static Dictionary<string, string> RenamedModels { get; set; } = new Dictionary<string, string>();
-        static void GenerateModelClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, MapDataClassInfo mapDataClassInfo)
+        private static Dictionary<string, string> RenamedModels { get; set; } = new Dictionary<string, string>();
+
+        private static void GenerateModelClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, MapDataClassInfo mapDataClassInfo)
         {
             string mainName = classReferenceInfo.Name;
             if (mainName.Contains("<"))
@@ -466,15 +489,21 @@ import {{ {baseServiceName} }} from './Reference';
                 name = mainName + index;
             }
             if (classReferenceInfo.Name.Contains("<"))
+            {
                 mainName = name + classReferenceInfo.Name.Substring(classReferenceInfo.Name.IndexOf('<'));
+                classReferenceInfo.Name = mainName;
+                RenamedModels.Add(classReferenceInfo.NameSpace + "." + mainName, classReferenceInfo.NameSpace + "." + oldName);
+            }
             else
+            {
                 classReferenceInfo.Name = name;
-            RenamedModels.Add(classReferenceInfo.NameSpace + "." + name, classReferenceInfo.NameSpace + "." + oldName);
+                RenamedModels.Add(classReferenceInfo.NameSpace + "." + name, classReferenceInfo.NameSpace + "." + oldName);
+            }
             string baseName = "";
             if (!string.IsNullOrEmpty(classReferenceInfo.BaseClassName) && !classReferenceInfo.BaseClassName.StartsWith("SignalGo."))
                 baseName = " extends " + classReferenceInfo.BaseClassName;
             builder.AppendLine(prefix + "export class " + classReferenceInfo.Name + baseName + "{");
-            foreach (var propertyInfo in classReferenceInfo.Properties)
+            foreach (PropertyReferenceInfo propertyInfo in classReferenceInfo.Properties)
             {
                 if (mapDataClassInfo != null && mapDataClassInfo.IgnoreProperties.Contains(propertyInfo.Name))
                     continue;
@@ -489,17 +518,17 @@ import {{ {baseServiceName} }} from './Reference';
             builder.AppendLine();
         }
 
-        static string[] SplitWithIgnoreQuotes(string text, string splitText)
+        private static string[] SplitWithIgnoreQuotes(string text, string splitText)
         {
             return System.Text.RegularExpressions.Regex.Split(text, splitText + "(?=(?:[^\"|']*[\"|'][^\"|']*[\"|'])*[^\"|']*$)");
         }
 
-        static string[] GetListOfUsing(string text)
+        private static string[] GetListOfUsing(string text)
         {
             return text.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Replace("using ", "").Trim()).ToArray();
         }
 
-        static Tuple<string, string> GetNameSpaceAndName(string text)
+        private static Tuple<string, string> GetNameSpaceAndName(string text)
         {
             int lastDotIndex = text.LastIndexOf(".");
             if (lastDotIndex == -1)
