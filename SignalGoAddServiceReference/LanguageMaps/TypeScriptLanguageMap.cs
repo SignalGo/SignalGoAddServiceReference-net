@@ -361,7 +361,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             {
                 if (hasSuffix)
                 {
-                    return ReplaceSuffix(find.Value.Key, name.Substring(name.IndexOf('<')+1, name.IndexOf('>') - name.IndexOf('<')-1));
+                    return ReplaceSuffix(name, name.Substring(name.IndexOf('<')+1, name.IndexOf('>') - name.IndexOf('<')-1));
                 }
                 return find.Value.Key;
             }
@@ -492,7 +492,7 @@ import {{ {baseServiceName} }} from './Reference';
             {
                 mainName = name + classReferenceInfo.Name.Substring(classReferenceInfo.Name.IndexOf('<'));
                 classReferenceInfo.Name = mainName;
-                RenamedModels.Add(classReferenceInfo.NameSpace + "." + mainName, classReferenceInfo.NameSpace + "." + oldName);
+                RenamedModels.Add(classReferenceInfo.NameSpace + "." + name, classReferenceInfo.NameSpace + "." + oldName);
             }
             else
             {

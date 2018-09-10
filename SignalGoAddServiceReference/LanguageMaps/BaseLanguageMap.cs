@@ -6,10 +6,8 @@ using SignalGo.Shared.Models.ServiceReference;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SignalGoAddServiceReference.LanguageMaps
 {
@@ -20,28 +18,28 @@ namespace SignalGoAddServiceReference.LanguageMaps
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(uri);
             webRequest.ContentType = "SignalGo Service Reference";
             webRequest.Headers.Add("servicenamespace", serviceNameSpace);
-            var response = webRequest.GetResponse();
+            WebResponse response = webRequest.GetResponse();
             if (response.ContentLength <= 0)
                 throw new Exception("Url ContentLength is not set!");
-            else if (response.ContentType != "SignalGoServiceType")
+            else if (response.Headers["Service-Type"] == null || response.Headers["Service-Type"] != "SignalGoServiceType")
                 throw new Exception("Url file type is not support!");
-            var stream = response.GetResponseStream();
+            Stream stream = response.GetResponseStream();
 
-            var fullFilePath = "";
-            using (var streamWriter = new MemoryStream())
+            string fullFilePath = "";
+            using (MemoryStream streamWriter = new MemoryStream())
             {
                 streamWriter.SetLength(0);
-                var bytes = new byte[1024 * 10];
+                byte[] bytes = new byte[1024 * 10];
                 while (streamWriter.Length != response.ContentLength)
                 {
-                    var readCount = stream.Read(bytes, 0, bytes.Length);
+                    int readCount = stream.Read(bytes, 0, bytes.Length);
                     if (readCount <= 0)
                         break;
                     streamWriter.Write(bytes, 0, readCount);
                 }
-                var json = Encoding.UTF8.GetString(streamWriter.ToArray());
+                string json = Encoding.UTF8.GetString(streamWriter.ToArray());
                 //var namespaceReferenceInfo = (NamespaceReferenceInfo)JsonConvert.DeserializeObject(json, typeof(NamespaceReferenceInfo), new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore, Converters = new List<JsonConverter>() { new DataExchangeConverter(LimitExchangeType.IncomingCall) { Server = null, Client = null, IsEnabledReferenceResolver = true, IsEnabledReferenceResolverForArray = true } }, Formatting = Formatting.None, NullValueHandling = NullValueHandling.Ignore });
-                var namespaceReferenceInfo = (NamespaceReferenceInfo)JsonConvert.DeserializeObject(json, typeof(NamespaceReferenceInfo), new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore, Formatting = Formatting.None, NullValueHandling = NullValueHandling.Ignore });
+                NamespaceReferenceInfo namespaceReferenceInfo = (NamespaceReferenceInfo)JsonConvert.DeserializeObject(json, typeof(NamespaceReferenceInfo), new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore, Formatting = Formatting.None, NullValueHandling = NullValueHandling.Ignore });
 
                 if (selectedLanguage == 0)
                 {
