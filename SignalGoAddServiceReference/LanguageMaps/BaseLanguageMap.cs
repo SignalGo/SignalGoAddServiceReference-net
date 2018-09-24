@@ -18,6 +18,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(uri);
             webRequest.ContentType = "SignalGo Service Reference";
             webRequest.Headers.Add("servicenamespace", serviceNameSpace);
+            webRequest.Headers.Add("selectedLanguage", selectedLanguage.ToString());
             WebResponse response = webRequest.GetResponse();
             if (response.ContentLength <= 0)
                 throw new Exception("Url ContentLength is not set!");

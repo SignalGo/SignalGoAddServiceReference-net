@@ -256,7 +256,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
         {
             StringBuilder builder = new StringBuilder();
             string returnTypeName = GetReturnTypeName(methodInfo.ReturnTypeName);
-            builder.AppendLine($"{prefix}{methodInfo.Name}({GenerateMethodParameters(methodInfo, baseServiceName)}): Promise<{returnTypeName}> {{");
+            builder.AppendLine($"{prefix}{methodInfo.DuplicateName}({GenerateMethodParameters(methodInfo, baseServiceName)}): Promise<{returnTypeName}> {{");
             builder.Append($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
             int index = 0;
             if (methodInfo.Parameters.Count == 0)
@@ -361,7 +361,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             {
                 if (hasSuffix)
                 {
-                    return ReplaceSuffix(name, name.Substring(name.IndexOf('<')+1, name.IndexOf('>') - name.IndexOf('<')-1));
+                    return ReplaceSuffix(find.Value.Key, name.Substring(name.IndexOf('<')+1, name.IndexOf('>') - name.IndexOf('<')-1));
                 }
                 return find.Value.Key;
             }
@@ -370,6 +370,8 @@ namespace SignalGoAddServiceReference.LanguageMaps
 
         static string ReplaceSuffix(string baseText,string newString)
         {
+            if (!baseText.Contains("<"))
+                baseText += "<>";
             var aStringBuilder = new StringBuilder(baseText);
             aStringBuilder.Remove(baseText.IndexOf('<')+1, baseText.IndexOf('>') - baseText.IndexOf('<')-1);
             aStringBuilder.Insert(baseText.IndexOf('<')+1, newString);
