@@ -360,14 +360,9 @@ namespace SignalGoAddServiceReference.LanguageMaps
 
             builder.AppendLine($"{prefix} public {returnType} {methodInfo.Name}Async({GenerateMethodParameters(methodInfo)})");
             builder.AppendLine($"{prefix}{{");
-            var result = $"SignalGo.Client.ClientProvider.SendOneWayMethod<{methodInfo.ReturnTypeName}>(_signalGoServerAddress, _signalGoPortNumber, \"{serviceName}\", \"{methodInfo.Name}\"{GenerateMethodParametersWitoutTypes(methodInfo)})";
-
-            //if (methodInfo.ReturnTypeName != "void")
-            //{
-            //    builder.AppendLine($"{prefix + prefix}return System.Threading.Tasks.{returnType}.Factory.StartNew(() => {result});");
-            //}
-            //else
-            builder.AppendLine($"{prefix + prefix}return System.Threading.Tasks.{returnType}.Run(() => {result});");
+            var result = $"SignalGo.Client.ClientProvider.SendOneWayMethodAsync<{methodInfo.ReturnTypeName}>(_signalGoServerAddress, _signalGoPortNumber, \"{serviceName}\", \"{methodInfo.Name}\"{GenerateMethodParametersWitoutTypes(methodInfo)})";
+            
+            builder.AppendLine($"{prefix + prefix}return {result};");
 
             builder.AppendLine($"{prefix}}}");
         }
