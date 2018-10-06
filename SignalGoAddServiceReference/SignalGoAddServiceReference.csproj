@@ -66,7 +66,9 @@
     <Compile Include="AddSignalGoServicePackage.cs" />
     <Compile Include="LanguageMaps\BaseLanguageMap.cs" />
     <Compile Include="LanguageMaps\CsharpLanguageMap.cs" />
+    <Compile Include="LanguageMaps\CsharpWebServiceLanguageMap.cs" />
     <Compile Include="LanguageMaps\TypeScriptLanguageMap.cs" />
+    <Compile Include="Models\AddReferenceConfigInfo.cs" />
     <Compile Include="Models\ClassReferenceInfo.cs" />
     <Compile Include="Models\EnumReferenceInfo.cs" />
     <Compile Include="Models\KeyValue.cs" />
@@ -214,6 +216,7 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>

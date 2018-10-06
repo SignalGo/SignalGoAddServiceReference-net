@@ -20,6 +20,8 @@
 				<RowDefinition Height="auto"/>
 				<RowDefinition Height="auto"/>
 				<RowDefinition Height="auto"/>
+				<RowDefinition Height="auto"/>
+				<RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
             <Grid >
                 <TextBlock Margin="0,0,0,10" Text="This extension will create for you, in the client project, interfaces and classes needed by client to call methods you previously defined on server.  Both Sync and Async versions of methods will be created. You can use this extension or write your own manually.
@@ -30,12 +32,17 @@ The code will be created into the &quot;Connected Services/ServiceName&quot; fol
             <TextBlock Foreground="Black" Grid.Row="3" Text="Server Name:  (example: &quot;MyService&quot;)" Margin="0,10,10,0"/>
             <TextBox x:Name="txtServiceName" Grid.Row="4" Margin="0,10,0,0"/>
 			<TextBlock Foreground="Black" Grid.Row="5" Text="Language Type:" Margin="0,10,10,0"/>
-			<ComboBox x:Name="cboLanguage" Foreground="Black" Grid.Row="6" SelectedIndex="0" Margin="0,10,0,0">
-				<ComboBoxItem Content="C#"/>
-				<ComboBoxItem Content="Angular Type Script"/>
+			<ComboBox x:Name="cboLanguage" Background="White" Foreground="Black" Grid.Row="6" SelectedIndex="0" Margin="0,10,0,0">
+				<ComboBoxItem Content="C#" Background="White"/>
+				<ComboBoxItem Content="Angular Type Script" Background="White"/>
 			</ComboBox>
-			
-			<Button x:Name="btnAddService" Click="btnAddService_Click" Height="30" Grid.Row="7" Margin="0,10,0,0" Content="Add Service"/>
+			<TextBlock Foreground="Black" Grid.Row="7" Text="Service Type:" Margin="0,10,10,0"/>
+			<ComboBox x:Name="cboServiceType" Background="White" Foreground="Black" Grid.Row="8" SelectedIndex="0" Margin="0,10,0,0">
+				<ComboBoxItem Content="SignalGo" Background="White"/>
+				<ComboBoxItem Content="Soap Web Service" Background="White"/>
+			</ComboBox>
+
+			<Button x:Name="btnAddService" Click="btnAddService_Click" Height="30" Grid.Row="9" Margin="0,10,0,0" Content="Add Service"/>
         </Grid>
     </Grid>
 </UserControl>

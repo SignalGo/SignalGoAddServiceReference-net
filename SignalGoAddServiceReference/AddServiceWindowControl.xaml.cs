@@ -4,22 +4,15 @@
     using Microsoft.VisualStudio;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
+    using Newtonsoft.Json;
+    using SignalGoAddServiceReference.LanguageMaps;
+    using SignalGoAddServiceReference.Models;
     using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
     using System.IO;
-    using System.Net;
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Windows;
     using System.Windows.Controls;
-    using System.Linq;
-    using Newtonsoft.Json;
-    using SignalGo.Shared.Models.ServiceReference;
-    using System.Reflection;
-    using SignalGoAddServiceReference.Models;
-    using System.Text.RegularExpressions;
-    using SignalGoAddServiceReference.LanguageMaps;
 
     /// <summary>
     /// Interaction logic for AddServiceWindowControl.
@@ -31,7 +24,7 @@
         /// </summary>
         public AddServiceWindowControl()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
         /// <summary>
@@ -54,7 +47,7 @@
             IVsMultiItemSelect multiItemSelect;
             uint itemId;
 
-            var monitorSelection = (IVsMonitorSelection)Package.GetGlobalService(typeof(SVsShellMonitorSelection));
+            IVsMonitorSelection monitorSelection = (IVsMonitorSelection)Package.GetGlobalService(typeof(SVsShellMonitorSelection));
 
             try
             {
@@ -88,14 +81,14 @@
         {
             try
             {
-                var project = BaseLanguageMap.GetActiveProject();
-                var projectPath = project.FullName;
+                Project project = BaseLanguageMap.GetActiveProject();
+                string projectPath = project.FullName;
                 string servicesFolder = Path.Combine(Path.GetDirectoryName(projectPath), "Connected Services");
                 if (!Directory.Exists(servicesFolder))
                     project.ProjectItems.AddFolder("Connected Services");
                 Uri uri = null;
-                var serviceNameSpace = txtServiceName.Text.Trim();
-                var serviceURI = txtServiceAddress.Text.Trim();
+                string serviceNameSpace = txtServiceName.Text.Trim();
+                string serviceURI = txtServiceAddress.Text.Trim();
                 if (string.IsNullOrEmpty(serviceNameSpace))
                 {
                     MessageBox.Show("Please fill your service name", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -110,14 +103,15 @@
                 string servicePath = Path.Combine(servicesFolder, Path.GetFileNameWithoutExtension(serviceNameSpace));
                 if (!Directory.Exists(servicePath))
                     Directory.CreateDirectory(servicePath);
-                var fullFilePath = BaseLanguageMap.DownloadService(uri, servicePath, serviceNameSpace, cboLanguage.SelectedIndex);
+                string fullFilePath = BaseLanguageMap.DownloadService(serviceURI, servicePath, serviceNameSpace, cboLanguage.SelectedIndex, cboServiceType.SelectedIndex);
 
-                StringBuilder text = new StringBuilder();
-                text.AppendLine(serviceURI);
-                text.AppendLine(serviceNameSpace);
-                text.AppendLine(cboLanguage.SelectedIndex.ToString());
-                var signalGoSettingPath = Path.Combine(servicePath, "setting.signalgo");
-                File.WriteAllText(signalGoSettingPath, text.ToString(), Encoding.UTF8);
+                AddReferenceConfigInfo config = new AddReferenceConfigInfo();
+                config.ServiceUrl = serviceURI;
+                config.ServiceNameSpace = serviceNameSpace;
+                config.LanguageType = cboLanguage.SelectedIndex;
+                config.ServiceType = cboServiceType.SelectedIndex;
+                string signalGoSettingPath = Path.Combine(servicePath, "setting.signalgo");
+                File.WriteAllText(signalGoSettingPath, JsonConvert.SerializeObject(config), Encoding.UTF8);
 
                 project.ProjectItems.AddFromFile(fullFilePath);
                 FinishedAction?.Invoke();

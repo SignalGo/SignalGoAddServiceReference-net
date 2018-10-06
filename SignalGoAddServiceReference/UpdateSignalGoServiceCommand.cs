@@ -6,7 +6,9 @@ using System.Text;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Newtonsoft.Json;
 using SignalGoAddServiceReference.LanguageMaps;
+using SignalGoAddServiceReference.Models;
 
 namespace SignalGoAddServiceReference
 {
@@ -129,16 +131,29 @@ namespace SignalGoAddServiceReference
                 var settingFile = Path.Combine(directory, "setting.signalgo");
                 if (File.Exists(settingFile))
                 {
-                    var lines = File.ReadAllLines(settingFile, Encoding.UTF8);
-                    if (lines.Length <= 1)
+                    AddReferenceConfigInfo config = null;
+                    try
                     {
-                        MessageBox.Show("Setting file is empty! please try to recreate your service!", "error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
+                        config = JsonConvert.DeserializeObject<AddReferenceConfigInfo>(File.ReadAllText(settingFile, Encoding.UTF8));
                     }
-
-                    if (Uri.TryCreate(lines[0], UriKind.Absolute, out Uri uri))
+                    catch (Exception ex)
                     {
-                        BaseLanguageMap.DownloadService(uri, directory, lines[1], int.Parse(lines[2]));
+                        config = new AddReferenceConfigInfo();
+                        var lines = File.ReadAllLines(settingFile, Encoding.UTF8);
+                        if (lines.Length <= 1)
+                        {
+                            MessageBox.Show("Setting file is empty! please try to recreate your service!", "error", MessageBoxButton.OK, MessageBoxImage.Error);
+                            return;
+                        }
+                        config.ServiceUrl = lines[0];
+                        config.ServiceNameSpace = lines[1];
+                        config.LanguageType = int.Parse(lines[2]);
+                    }
+                    
+
+                    if (Uri.TryCreate(config.ServiceUrl, UriKind.Absolute, out Uri uri))
+                    {
+                        BaseLanguageMap.DownloadService(config.ServiceUrl, directory, config.ServiceNameSpace, config.LanguageType, config.ServiceType);
                         MessageBox.Show("Update success!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     else
