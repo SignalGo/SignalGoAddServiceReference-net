@@ -531,7 +531,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             builder.AppendLine(prefix + "}");
         }
 
-        private static void GenerateModelEnum(EnumReferenceInfo enumReferenceInfo, string prefix, StringBuilder builder)
+        public static void GenerateModelEnum(EnumReferenceInfo enumReferenceInfo, string prefix, StringBuilder builder)
         {
             builder.AppendLine(prefix + "public enum " + enumReferenceInfo.Name + " : " + enumReferenceInfo.TypeName);
             builder.AppendLine(prefix + "{");
@@ -543,7 +543,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             builder.AppendLine();
         }
 
-        private static void GenerateModelClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, MapDataClassInfo mapDataClassInfo)
+        public static void GenerateModelClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, MapDataClassInfo mapDataClassInfo)
         {
             string baseName = "";
             if (!string.IsNullOrEmpty(classReferenceInfo.BaseClassName))
@@ -565,17 +565,17 @@ namespace SignalGoAddServiceReference.LanguageMaps
             builder.AppendLine();
         }
 
-        private static string[] SplitWithIgnoreQuotes(string text, string splitText)
+        public static string[] SplitWithIgnoreQuotes(string text, string splitText)
         {
             return System.Text.RegularExpressions.Regex.Split(text, splitText + "(?=(?:[^\"|']*[\"|'][^\"|']*[\"|'])*[^\"|']*$)");
         }
 
-        private static string[] GetListOfUsing(string text)
+        public static string[] GetListOfUsing(string text)
         {
             return text.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Replace("using ", "").Trim()).ToArray();
         }
 
-        private static Tuple<string, string> GetNameSpaceAndName(string text)
+        public static Tuple<string, string> GetNameSpaceAndName(string text)
         {
             int lastDotIndex = text.LastIndexOf(".");
             if (lastDotIndex == -1)

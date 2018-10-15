@@ -54,6 +54,11 @@ namespace SignalGoAddServiceReference.LanguageMaps
                         fullFilePath = Path.Combine(servicePath, "Reference.ts");
                         File.WriteAllText(fullFilePath, TypeScriptLanguageMap.CalculateMapData(servicePath, namespaceReferenceInfo, serviceNameSpace), Encoding.UTF8);
                     }
+                    else if (selectedLanguage == 2)
+                    {
+                        fullFilePath = Path.Combine(servicePath, "Reference.cs");
+                        File.WriteAllText(fullFilePath, BlazorLanguageMap.CalculateMapData(namespaceReferenceInfo, serviceNameSpace), Encoding.UTF8);
+                    }
                 }
             }
             else

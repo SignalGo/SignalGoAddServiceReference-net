@@ -65,6 +65,7 @@
     <Compile Include="AddSignalGoService.cs" />
     <Compile Include="AddSignalGoServicePackage.cs" />
     <Compile Include="LanguageMaps\BaseLanguageMap.cs" />
+    <Compile Include="LanguageMaps\BlazorLanguageMap.cs" />
     <Compile Include="LanguageMaps\CsharpLanguageMap.cs" />
     <Compile Include="LanguageMaps\CsharpWebServiceLanguageMap.cs" />
     <Compile Include="LanguageMaps\TypeScriptLanguageMap.cs" />

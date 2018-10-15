@@ -35,6 +35,7 @@ The code will be created into the &quot;Connected Services/ServiceName&quot; fol
 			<ComboBox x:Name="cboLanguage" Background="White" Foreground="Black" Grid.Row="6" SelectedIndex="0" Margin="0,10,0,0">
 				<ComboBoxItem Content="C#" Background="White"/>
 				<ComboBoxItem Content="Angular Type Script" Background="White"/>
+				<ComboBoxItem Content="C# Blazor" Background="White"/>
 			</ComboBox>
 			<TextBlock Foreground="Black" Grid.Row="7" Text="Service Type:" Margin="0,10,10,0"/>
 			<ComboBox x:Name="cboServiceType" Background="White" Foreground="Black" Grid.Row="8" SelectedIndex="0" Margin="0,10,0,0">
