@@ -12,9 +12,8 @@ namespace SignalGoAddServiceReference.LanguageMaps
 {
     public class TypeScriptLanguageMap
     {
-        public static string CalculateMapData(string savePath, NamespaceReferenceInfo namespaceReferenceInfo, string serviceName)
+        public string CalculateMapData(string savePath, NamespaceReferenceInfo namespaceReferenceInfo, string serviceName)
         {
-            RenamedModels.Clear();
             Project project = BaseLanguageMap.GetActiveProject();
             List<MapDataClassInfo> MapDataClassInfoes = new List<MapDataClassInfo>();
             List<string> usingsOfClass = new List<string>();
@@ -252,7 +251,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             return builderResult.ToString();
         }
 
-        private static void GenerateMethod(string serviceName, MethodReferenceInfo methodInfo, string prefix, StringBuilder resultBuilder, bool doSemicolon, string baseServiceName)
+        private void GenerateMethod(string serviceName, MethodReferenceInfo methodInfo, string prefix, StringBuilder resultBuilder, bool doSemicolon, string baseServiceName)
         {
             StringBuilder builder = new StringBuilder();
             string returnTypeName = GetReturnTypeName(methodInfo.ReturnTypeName);
@@ -280,7 +279,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 resultBuilder.AppendLine(result);
         }
 
-        private static void GenerateProperty(PropertyReferenceInfo propertyInfo, string prefix, bool generateOnPropertyChanged, StringBuilder builder)
+        private void GenerateProperty(PropertyReferenceInfo propertyInfo, string prefix, bool generateOnPropertyChanged, StringBuilder builder)
         {
             bool isNullable = propertyInfo.ReturnTypeName.Contains("?");
             propertyInfo.ReturnTypeName = GetReturnTypeName(propertyInfo.ReturnTypeName);
@@ -304,6 +303,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
 
         private static string GetReturnTypeName(string name)
         {
+            string baseBaseName = name;
             Dictionary<string, string> returnTypes = new Dictionary<string, string>()
             {
                 { "bool","boolean" },
@@ -348,39 +348,65 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 //name = name.Replace("System.Collections.Generic.List<", "List<");
                 name = RemoveBlockToArray("System.Collections.Generic.List<", name);
             }
-            string findName = name;
+            //string findName = name;
             bool hasSuffix = false;
             if (name.Contains("<"))
             {
-                findName = name.Substring(0, name.IndexOf('<'));
+                //findName = name.Substring(0, name.IndexOf('<'));
                 hasSuffix = true;
             }
+            
+            //KeyValuePair<string, string>? find = RenamedModels.Where(x => (!hasSuffix && x.Value == findName) || (hasSuffix && x.Value.Contains("<") && x.Value.Substring(0, x.Value.IndexOf('<')) == findName)).Select(x => (KeyValuePair<string, string>?)x).FirstOrDefault();
 
-            KeyValuePair<string, string>? find = RenamedModels.Where(x => (!hasSuffix && x.Value == findName) || (hasSuffix && x.Value.Contains("<") && x.Value.Substring(0, x.Value.IndexOf('<')) == findName)).Select(x => (KeyValuePair<string, string>?)x).FirstOrDefault();
-            if (find != null)
+            if (hasSuffix)
             {
-                if (hasSuffix)
-                {
-                    return ReplaceSuffix(find.Value.Key, name.Substring(name.IndexOf('<')+1, name.IndexOf('>') - name.IndexOf('<')-1));
-                }
-                return find.Value.Key;
+                return ReplaceSuffix(name);
             }
             return name;
         }
 
-        static string ReplaceSuffix(string baseText,string newString)
+        private static string TakeBlock(string text, char startBlock, char endBlock, char plusChar, char endPlusChar)
         {
-            if (!baseText.Contains("<"))
-                baseText += "<>";
-            var aStringBuilder = new StringBuilder(baseText);
-            aStringBuilder.Remove(baseText.IndexOf('<')+1, baseText.IndexOf('>') - baseText.IndexOf('<')-1);
-            aStringBuilder.Insert(baseText.IndexOf('<')+1, newString);
-            return aStringBuilder.ToString();
+            int indexToBreak = 0;
+            bool canAppend = false;
+            StringBuilder result = new StringBuilder();
+            bool isStarted = false;
+            foreach (char item in text)
+            {
+                if (isStarted)
+                {
+                    if (item == '<')
+                        indexToBreak++;
+                    else if (item == '>')
+                        indexToBreak--;
+                    if (indexToBreak < -1)
+                        break;
+                    canAppend = indexToBreak <= 0;
+                    if (canAppend && item == '>' && indexToBreak == 0)
+                        continue;
+                }
+                if (item == startBlock && !isStarted)
+                {
+                    canAppend = true;
+                    isStarted = true;
+                }
+                if (canAppend)
+                    result.Append(item);
+            }
+            return result.ToString();
+        }
+
+        private static string ReplaceSuffix(string newString)
+        {
+            if (newString.Contains("FoodCategoryInfo"))
+            {
+            }
+            return GenericInfo.GenerateGeneric(newString).ToString();
         }
 
         private static string RemoveBlockToArray(string title, string name)
         {
-            if (name.Contains(title))
+            while (name.Contains(title))
             {
                 string block = title;
                 int start = name.IndexOf(block) + block.Length;
@@ -403,13 +429,14 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 StringBuilder aStringBuilder = new StringBuilder(name);
                 aStringBuilder.Remove(start, 1);
                 aStringBuilder.Insert(start, "[]");
+                aStringBuilder.Remove(name.IndexOf(block), block.Length);
                 name = aStringBuilder.ToString();
-                name = name.Replace(block, "");
+                //name = name;//.Replace(block, "");
             }
             return name;
         }
 
-        private static string GenerateMethodParametersWitoutTypes(MethodReferenceInfo methodInfo)
+        private string GenerateMethodParametersWitoutTypes(MethodReferenceInfo methodInfo)
         {
             StringBuilder builder = new StringBuilder();
             foreach (ParameterReferenceInfo item in methodInfo.Parameters)
@@ -420,7 +447,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             return builder.ToString();
         }
 
-        private static string GenerateMethodParameters(MethodReferenceInfo methodInfo, string baseServiceName)
+        private string GenerateMethodParameters(MethodReferenceInfo methodInfo, string baseServiceName)
         {
             StringBuilder builder = new StringBuilder();
             int index = 0;
@@ -434,7 +461,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             return builder.ToString();
         }
 
-        private static void GenerateHttpServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, string baseServiceName)
+        private void GenerateHttpServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, string baseServiceName)
         {
             builder.AppendLine($@"import {{ Injectable }} from '@angular/core';
 import {{ ServerConnectionService }} from './server-connection.service';
@@ -463,7 +490,7 @@ import {{ {baseServiceName} }} from './Reference';
             }
         }
 
-        private static void GenerateModelEnum(EnumReferenceInfo enumReferenceInfo, string prefix, StringBuilder builder)
+        private void GenerateModelEnum(EnumReferenceInfo enumReferenceInfo, string prefix, StringBuilder builder)
         {
             builder.AppendLine(prefix + "export enum " + enumReferenceInfo.Name + " {");//+ " : " + enumReferenceInfo.TypeName
             foreach (SignalGo.Shared.Models.KeyValue<string, string> name in enumReferenceInfo.KeyValues)
@@ -474,32 +501,37 @@ import {{ {baseServiceName} }} from './Reference';
             builder.AppendLine();
         }
 
-        private static Dictionary<string, string> RenamedModels { get; set; } = new Dictionary<string, string>();
+        private List<string> GeneratedModels { get; set; } = new List<string>();
 
-        private static void GenerateModelClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, MapDataClassInfo mapDataClassInfo)
+        private void GenerateModelClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, MapDataClassInfo mapDataClassInfo)
         {
             string mainName = classReferenceInfo.Name;
             if (mainName.Contains("<"))
                 mainName = mainName.Substring(0, mainName.IndexOf('<'));
 
-            int index = 1;
-            string oldName = classReferenceInfo.Name;
             string name = mainName;
-            while (RenamedModels.ContainsKey(classReferenceInfo.NameSpace + "." + name))
-            {
-                index++;
-                name = mainName + index;
-            }
+            //while (RenamedModels.ContainsKey(classReferenceInfo.NameSpace + "." + name))
+            //{
+            //    index++;
+            //    name = mainName + index;
+            //}
             if (classReferenceInfo.Name.Contains("<"))
             {
-                mainName = name + classReferenceInfo.Name.Substring(classReferenceInfo.Name.IndexOf('<'));
+                int indexName = classReferenceInfo.Name.Count(x => x == '>' || x == '<' || x == ',');
+                mainName = name + indexName + classReferenceInfo.Name.Substring(classReferenceInfo.Name.IndexOf('<'));
+                if (GeneratedModels.Contains(mainName))
+                    return;
+                GeneratedModels.Add(mainName);
                 classReferenceInfo.Name = mainName;
-                RenamedModels.Add(classReferenceInfo.NameSpace + "." + name, classReferenceInfo.NameSpace + "." + oldName);
+                //RenamedModels.Add(classReferenceInfo.NameSpace + "." + name, classReferenceInfo.NameSpace + "." + oldName);
             }
             else
             {
+                if (GeneratedModels.Contains(name))
+                    return;
+                GeneratedModels.Add(name);
                 classReferenceInfo.Name = name;
-                RenamedModels.Add(classReferenceInfo.NameSpace + "." + name, classReferenceInfo.NameSpace + "." + oldName);
+                //RenamedModels.Add(classReferenceInfo.NameSpace + "." + name, classReferenceInfo.NameSpace + "." + oldName);
             }
             string baseName = "";
             if (!string.IsNullOrEmpty(classReferenceInfo.BaseClassName) && !classReferenceInfo.BaseClassName.StartsWith("SignalGo."))

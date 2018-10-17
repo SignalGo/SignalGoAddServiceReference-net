@@ -72,6 +72,7 @@
     <Compile Include="Models\AddReferenceConfigInfo.cs" />
     <Compile Include="Models\ClassReferenceInfo.cs" />
     <Compile Include="Models\EnumReferenceInfo.cs" />
+    <Compile Include="Models\GenericInfo.cs" />
     <Compile Include="Models\KeyValue.cs" />
     <Compile Include="Models\MapDataClassInfo.cs" />
     <Compile Include="Models\MethodReferenceInfo.cs" />

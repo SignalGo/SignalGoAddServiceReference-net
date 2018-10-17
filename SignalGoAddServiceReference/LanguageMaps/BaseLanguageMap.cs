@@ -52,7 +52,8 @@ namespace SignalGoAddServiceReference.LanguageMaps
                     else if (selectedLanguage == 1)
                     {
                         fullFilePath = Path.Combine(servicePath, "Reference.ts");
-                        File.WriteAllText(fullFilePath, TypeScriptLanguageMap.CalculateMapData(servicePath, namespaceReferenceInfo, serviceNameSpace), Encoding.UTF8);
+                        TypeScriptLanguageMap typeScriptLanguageMap = new TypeScriptLanguageMap();
+                        File.WriteAllText(fullFilePath, typeScriptLanguageMap.CalculateMapData(servicePath, namespaceReferenceInfo, serviceNameSpace), Encoding.UTF8);
                     }
                     else if (selectedLanguage == 2)
                     {
