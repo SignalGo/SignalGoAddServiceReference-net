@@ -8,6 +8,7 @@ using System.Resources;
 using System.Runtime.InteropServices;
 using System.Windows;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ExtensionManager;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -46,12 +47,27 @@ namespace SignalGoAddServiceReference
         /// AddSignalGoServicePackage GUID string.
         /// </summary>
         public const string PackageGuidString = "94784b9e-7818-4e0c-943e-d380824c4271";
-
+        public static string Version { get; set; }
         /// <summary>
         /// Initializes a new instance of the <see cref="AddSignalGoService"/> class.
         /// </summary>
         public AddSignalGoServicePackage()
         {
+            try
+            {
+                // get ExtensionManager
+                var manager = Package.GetGlobalService(typeof(SVsExtensionManager));
+                // get your extension by Product Id
+                var myExtension = manager.GetType().GetMethod("GetInstalledExtension").Invoke(manager,new object[] { "SignalGoExtension.0bde2334-d8c9-4dc4-851f-61016c295347" });
+                // get current version
+                var header = myExtension.GetType().GetProperty("Header").GetValue(myExtension, null);
+                var currentVersion = header.GetType().GetProperty("Version").GetValue(header, null);
+                Version = currentVersion.ToString();
+            }
+            catch (Exception ex)
+            {
+                Version = "unknown";
+            }
             // Inside this method you can place any initialization code that does not require
             // any Visual Studio service because at this point the package object is created but
             // not sited yet inside Visual Studio environment. The place to do all the other
