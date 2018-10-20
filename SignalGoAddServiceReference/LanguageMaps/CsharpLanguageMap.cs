@@ -167,6 +167,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             {
                 builderResult.AppendLine("using " + item + ";");
             }
+            usingsOfClass.Add(namespaceReferenceInfo.Name + ".Interfaces");
             usingsOfClass.Add(namespaceReferenceInfo.Name + ".ServerServices");
             usingsOfClass.Add(namespaceReferenceInfo.Name + ".HttpServices");
             //usingsOfClass.Add(namespaceReferenceInfo.Name + ".Models");
@@ -177,8 +178,28 @@ namespace SignalGoAddServiceReference.LanguageMaps
             {
                 builderResult.AppendLine("using " + item + ";");
             }
+
+            builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".Interfaces");
+            builderResult.AppendLine("{");
             builderResult.AppendLine("");
 
+            List<string> interfaces = new List<string>();
+            foreach (ClassReferenceInfo item in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ServiceLevel || x.Type == ClassReferenceType.StreamLevel))
+            {
+                if (interfaces.Contains(item.Name))
+                    continue;
+                interfaces.Add(item.Name);
+                GenerateServiceInterface(item, "    ", builderResult, true, GetServiceType(item.Type, item.Name));
+            }
+            foreach (ClassReferenceInfo item in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.HttpServiceLevel || x.Type == ClassReferenceType.OneWayLevel))
+            {
+                if (interfaces.Contains(item.Name))
+                    continue;
+                interfaces.Add(item.Name);
+                GenerateServiceInterface(item, "    ", builderResult, true, GetServiceType(item.Type, item.Name));
+            }
+            builderResult.AppendLine("}");
+            builderResult.AppendLine("");
 
             builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".ServerServices");
             builderResult.AppendLine("{");
@@ -297,11 +318,24 @@ namespace SignalGoAddServiceReference.LanguageMaps
             return builderResult.ToString();
         }
 
+        private static string GetServiceType(ClassReferenceType classReferenceType, string className)
+        {
+            if (classReferenceType == ClassReferenceType.ServiceLevel)
+                return "ServiceType.ServerService";
+            else if (classReferenceType == ClassReferenceType.StreamLevel)
+                return "ServiceType.StreamService";
+            else if (classReferenceType == ClassReferenceType.OneWayLevel)
+                return "ServiceType.OneWayService";
+            else if (classReferenceType == ClassReferenceType.HttpServiceLevel)
+                return "ServiceType.HttpService";
+            return "not suport yet!";
+        }
+
         private static void GenerateOneWayServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, bool generateAyncMethods, string serviceType)
         {
             string serviceAttribute = $@"[ServiceContract(""{classReferenceInfo.ServiceName}"",{serviceType}, InstanceType.SingleInstance)]";
             builder.AppendLine(prefix + serviceAttribute);
-            builder.AppendLine(prefix + "public class " + classReferenceInfo.Name);
+            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.Name + $" : I{classReferenceInfo.Name}");
             builder.AppendLine(prefix + "{");
             builder.AppendLine(prefix + prefix + "public static " + classReferenceInfo.Name + " Current { get; set; }");
 
@@ -323,13 +357,52 @@ namespace SignalGoAddServiceReference.LanguageMaps
             builder.AppendLine(prefix + "}");
         }
 
+        //private static void GenerateServerServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, bool generateAyncMethods, string serviceType)
+        //{
+        //    bool isInterface = classReferenceInfo.Name.StartsWith("I");
+        //    string serviceAttribute = $@"[ServiceContract(""{classReferenceInfo.ServiceName}"",{serviceType}, InstanceType.SingleInstance)]";
+        //    builder.AppendLine(prefix + serviceAttribute);
+        //    builder.AppendLine(prefix + "public interface " + (isInterface ? "" : "I") + classReferenceInfo.Name);
+        //    builder.AppendLine(prefix + "{");
+        //    foreach (MethodReferenceInfo methodInfo in classReferenceInfo.Methods)
+        //    {
+        //        GenerateMethod(methodInfo, prefix + prefix, builder);
+        //        if (generateAyncMethods)
+        //            GenerateAsyncMethod(methodInfo, prefix + prefix, builder);
+        //    }
+
+        //    builder.AppendLine(prefix + "}");
+        //}
+
+        private static void GenerateServiceInterface(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, bool generateAyncMethods, string serviceType)
+        {
+            string serviceAttribute = $@"{prefix}[ServiceContract(""{classReferenceInfo.ServiceName}"",{serviceType}, InstanceType.SingleInstance)]";
+            builder.AppendLine(serviceAttribute);
+            builder.AppendLine(prefix + "public partial interface I" + classReferenceInfo.Name);
+            builder.AppendLine(prefix + "{");
+            foreach (MethodReferenceInfo methodInfo in classReferenceInfo.Methods)
+            {
+                GenerateInterfaceMethod(methodInfo, prefix + prefix, builder);
+                if (generateAyncMethods)
+                    GenerateInterfaceMethodAsync(methodInfo, prefix + prefix, builder);
+            }
+
+            builder.AppendLine(prefix + "}");
+        }
+
         private static void GenerateServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, bool generateAyncMethods, string serviceType)
         {
-            bool isInterface = classReferenceInfo.Name.StartsWith("I");
             string serviceAttribute = $@"[ServiceContract(""{classReferenceInfo.ServiceName}"",{serviceType}, InstanceType.SingleInstance)]";
             builder.AppendLine(prefix + serviceAttribute);
-            builder.AppendLine(prefix + "public interface " + (isInterface ? "" : "I") + classReferenceInfo.Name);
+            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.Name + $" : I{classReferenceInfo.Name}");
             builder.AppendLine(prefix + "{");
+            builder.AppendLine($@"        private SignalGo.Client.ClientProvider CurrentProvider {{ get; set; }}
+        string ServiceName {{ get; set; }}
+        public {classReferenceInfo.Name}(SignalGo.Client.ClientProvider clientProvider)
+        {{
+            CurrentProvider = clientProvider;
+            ServiceName = this.GetType().GetServerServiceName(true);
+        }}");
             foreach (MethodReferenceInfo methodInfo in classReferenceInfo.Methods)
             {
                 GenerateMethod(methodInfo, prefix + prefix, builder);
@@ -363,37 +436,42 @@ namespace SignalGoAddServiceReference.LanguageMaps
             builder.AppendLine($"{prefix}}}");
         }
 
-        private static void GenerateMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder, bool doSemicolon = true)
+        private static void GenerateMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder)
         {
-            builder.AppendLine($"{prefix}{methodInfo.ReturnTypeName} {methodInfo.Name}({GenerateMethodParameters(methodInfo)}){(doSemicolon ? ";" : "")}");
-            //generate empty data
-            if (!doSemicolon)
-            {
-                builder.AppendLine($"{prefix}{{");
-                builder.AppendLine($"{prefix + prefix}throw new NotSupportedException();");
-                builder.AppendLine($"{prefix}}}");
-            }
+            builder.AppendLine($"{prefix} public {methodInfo.ReturnTypeName} {methodInfo.Name}({GenerateMethodParameters(methodInfo)})");
+            builder.AppendLine($"{prefix}{{");
+            builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientManager.ConnectorExtensions.SendDataSync<{methodInfo.ReturnTypeName}>(CurrentProvider, ServiceName,\"{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
+            builder.AppendLine($"{prefix + prefix}{{");
+            GenerateHttpMethodParameters(methodInfo, prefix, builder, false);
+            builder.AppendLine($"{prefix + prefix}}});");
+            builder.AppendLine($"{prefix}}}");
         }
 
-        private static void GenerateAsyncMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder, bool doSemicolon = true)
+        private static void GenerateInterfaceMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder)
+        {
+            builder.AppendLine($"{prefix} {methodInfo.ReturnTypeName} {methodInfo.Name}({GenerateMethodParameters(methodInfo)});");
+        }
+
+        private static void GenerateInterfaceMethodAsync(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder)
         {
             string returnType = "Task";
             if (methodInfo.ReturnTypeName != "void")
                 returnType = "Task<" + methodInfo.ReturnTypeName + ">";
-            builder.AppendLine($"{prefix}{returnType} {methodInfo.Name}Async({GenerateMethodParameters(methodInfo)}){(doSemicolon ? ";" : "")}");
-            //generate empty data
-            if (!doSemicolon)
-            {
-                builder.AppendLine($"{prefix}{{");
-                if (methodInfo.ReturnTypeName != "void")
-                {
-                    string result = $"throw new NotSupportedException()";
-                    builder.AppendLine($"{prefix + prefix}return System.Threading.Tasks.{returnType}.Factory.StartNew(() => {result});");
-                }
-                else
-                    builder.AppendLine($"{prefix + prefix}return System.Threading.Tasks.{returnType}.Factory.StartNew(() => {{}});");
-                builder.AppendLine($"{prefix}}}");
-            }
+            builder.AppendLine($"{prefix} {returnType} {methodInfo.Name}Async({GenerateMethodParameters(methodInfo)});");
+        }
+
+        private static void GenerateAsyncMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder)
+        {
+            string returnType = "Task";
+            if (methodInfo.ReturnTypeName != "void")
+                returnType = "Task<" + methodInfo.ReturnTypeName + ">";
+            builder.AppendLine($"{prefix}public {returnType} {methodInfo.Name}Async({GenerateMethodParameters(methodInfo)})");
+            builder.AppendLine($"{prefix}{{");
+            builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientManager.ConnectorExtensions.SendDataAsync<{methodInfo.ReturnTypeName}>(CurrentProvider, ServiceName,\"{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
+            builder.AppendLine($"{prefix + prefix}{{");
+            GenerateHttpMethodParameters(methodInfo, prefix, builder, false);
+            builder.AppendLine($"{prefix + prefix}}});");
+            builder.AppendLine($"{prefix}}}");
         }
 
         private static void GenerateProperty(PropertyReferenceInfo propertyInfo, string prefix, bool generateOnPropertyChanged, StringBuilder builder)
@@ -441,7 +519,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             }
         }
 
-        private static void GenerateHttpAsyncMethod(MethodReferenceInfo methodInfo,string serviceName, string prefix, StringBuilder builder, bool doSemicolon = true)
+        private static void GenerateHttpAsyncMethod(MethodReferenceInfo methodInfo, string serviceName, string prefix, StringBuilder builder, bool doSemicolon = true)
         {
             string returnType = "public async Task";
             if (methodInfo.ReturnTypeName != "void")
@@ -497,7 +575,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
 
         private static void GenerateHttpServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder)
         {
-            builder.AppendLine(prefix + "public class " + classReferenceInfo.Name);
+            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.Name + $" : I{classReferenceInfo.Name}");
             builder.AppendLine(prefix + "{");
             builder.AppendLine("        public " + classReferenceInfo.Name + @"(string serverUrl, SignalGo.Client.HttpClient httpClient = null)
         {
@@ -548,7 +626,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             string baseName = "";
             if (!string.IsNullOrEmpty(classReferenceInfo.BaseClassName))
                 baseName = " : " + classReferenceInfo.BaseClassName;
-            builder.AppendLine(prefix + "public class " + classReferenceInfo.Name + baseName);
+            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.Name + baseName);
             builder.AppendLine(prefix + "{");
             foreach (PropertyReferenceInfo propertyInfo in classReferenceInfo.Properties)
             {
