@@ -322,6 +322,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 { "short","number" },
                 { "System.DateTime","Date" },
                 { "System.Guid","string" },
+                { "System.Uri","string" },
             };
             name = name.Replace("?", "");
             if (returnTypes.ContainsKey(name))
@@ -349,6 +350,11 @@ namespace SignalGoAddServiceReference.LanguageMaps
             {
                 //name = name.Replace("System.Collections.Generic.List<", "List<");
                 name = RemoveBlockToArray("System.Collections.Generic.List<", name);
+            }
+            else if (name.Contains("System.Collections.Generic.Dictionary<"))
+            {
+                //name = name.Replace("System.Collections.Generic.List<", "List<");
+                name = "{}";
             }
             //string findName = name;
             bool hasSuffix = false;
