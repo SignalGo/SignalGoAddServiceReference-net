@@ -240,6 +240,15 @@ namespace SignalGoAddServiceReference.LanguageMaps
             builderResult.AppendLine("}");
             builderResult.AppendLine("");
 
+            builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".ClientServices");
+            builderResult.AppendLine("{");
+            foreach (ClassReferenceInfo callbackInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.CallbackLevel))
+            {
+                GenerateServiceInterface(callbackInfo, "    ", builderResult, false, "ServiceType.ClientService");
+            }
+            builderResult.AppendLine("}");
+            builderResult.AppendLine("");
+
             //Dictionary<string, string> AddedModels = new Dictionary<string, string>();
             //Dictionary<string, List<ClassReferenceInfo>> NeedToAddModels = new Dictionary<string, List<ClassReferenceInfo>>();
 
@@ -288,14 +297,6 @@ namespace SignalGoAddServiceReference.LanguageMaps
             //}
 
 
-            builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".ClientServices");
-            builderResult.AppendLine("{");
-            foreach (ClassReferenceInfo callbackInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.CallbackLevel))
-            {
-                GenerateServiceClass(callbackInfo, "    ", builderResult, false, "ServiceType.ClientService");
-            }
-            builderResult.AppendLine("}");
-            builderResult.AppendLine("");
 
 
             //builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".Enums");
@@ -378,7 +379,8 @@ namespace SignalGoAddServiceReference.LanguageMaps
         {
             string serviceAttribute = $@"{prefix}[ServiceContract(""{classReferenceInfo.ServiceName}"",{serviceType}, InstanceType.SingleInstance)]";
             builder.AppendLine(serviceAttribute);
-            builder.AppendLine(prefix + "public partial interface I" + classReferenceInfo.Name);
+            string interfacePrefix = classReferenceInfo.Name.StartsWith("I") ? "" : "I";
+            builder.AppendLine(prefix + $"public partial interface {interfacePrefix}{classReferenceInfo.Name}");
             builder.AppendLine(prefix + "{");
             foreach (MethodReferenceInfo methodInfo in classReferenceInfo.Methods)
             {
@@ -440,7 +442,14 @@ namespace SignalGoAddServiceReference.LanguageMaps
         {
             builder.AppendLine($"{prefix} public {methodInfo.ReturnTypeName} {methodInfo.Name}({GenerateMethodParameters(methodInfo)})");
             builder.AppendLine($"{prefix}{{");
-            builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientManager.ConnectorExtensions.SendDataSync<{methodInfo.ReturnTypeName}>(CurrentProvider, ServiceName,\"{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
+            string returnType = methodInfo.ReturnTypeName;
+            string returnValue = "return ";
+            if (returnType == "void")
+            {
+                returnValue = "";
+                returnType = "object";
+            }
+            builder.AppendLine($"{prefix + prefix}{returnValue} SignalGo.Client.ClientManager.ConnectorExtensions.SendDataSync<{returnType}>(CurrentProvider, ServiceName,\"{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
             builder.AppendLine($"{prefix + prefix}{{");
             GenerateHttpMethodParameters(methodInfo, prefix, builder, false);
             builder.AppendLine($"{prefix + prefix}}});");
@@ -463,11 +472,15 @@ namespace SignalGoAddServiceReference.LanguageMaps
         private static void GenerateAsyncMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder)
         {
             string returnType = "Task";
+            string returnTypeValue = "";
             if (methodInfo.ReturnTypeName != "void")
+            {
                 returnType = "Task<" + methodInfo.ReturnTypeName + ">";
+                returnTypeValue = "<" + methodInfo.ReturnTypeName + ">";
+            }
             builder.AppendLine($"{prefix}public {returnType} {methodInfo.Name}Async({GenerateMethodParameters(methodInfo)})");
             builder.AppendLine($"{prefix}{{");
-            builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientManager.ConnectorExtensions.SendDataAsync<{methodInfo.ReturnTypeName}>(CurrentProvider, ServiceName,\"{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
+            builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientManager.ConnectorExtensions.SendDataAsync{returnTypeValue}(CurrentProvider, ServiceName,\"{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
             builder.AppendLine($"{prefix + prefix}{{");
             GenerateHttpMethodParameters(methodInfo, prefix, builder, false);
             builder.AppendLine($"{prefix + prefix}}});");
