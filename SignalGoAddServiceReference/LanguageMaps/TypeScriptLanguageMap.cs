@@ -527,17 +527,17 @@ import {{ {baseServiceName} }} from './Reference';
             {
                 int indexName = classReferenceInfo.Name.Count(x => x == '>' || x == '<' || x == ',');
                 mainName = name + indexName + classReferenceInfo.Name.Substring(classReferenceInfo.Name.IndexOf('<'));
-                if (GeneratedModels.Contains(mainName))
+                if (GeneratedModels.Contains(classReferenceInfo.NameSpace + "." + mainName))
                     return;
-                GeneratedModels.Add(mainName);
+                GeneratedModels.Add(classReferenceInfo.NameSpace + "." + mainName);
                 classReferenceInfo.Name = mainName;
                 //RenamedModels.Add(classReferenceInfo.NameSpace + "." + name, classReferenceInfo.NameSpace + "." + oldName);
             }
             else
             {
-                if (GeneratedModels.Contains(name))
+                if (GeneratedModels.Contains(classReferenceInfo.NameSpace + "." + name))
                     return;
-                GeneratedModels.Add(name);
+                GeneratedModels.Add(classReferenceInfo.NameSpace +"."+ name);
                 classReferenceInfo.Name = name;
                 //RenamedModels.Add(classReferenceInfo.NameSpace + "." + name, classReferenceInfo.NameSpace + "." + oldName);
             }
