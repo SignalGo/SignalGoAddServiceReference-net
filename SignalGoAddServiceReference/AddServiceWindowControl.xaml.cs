@@ -103,13 +103,19 @@
                 string servicePath = Path.Combine(servicesFolder, Path.GetFileNameWithoutExtension(serviceNameSpace));
                 if (!Directory.Exists(servicePath))
                     Directory.CreateDirectory(servicePath);
-                string fullFilePath = BaseLanguageMap.DownloadService(serviceURI, servicePath, serviceNameSpace, cboLanguage.SelectedIndex, cboServiceType.SelectedIndex);
+                AddReferenceConfigInfo config = new AddReferenceConfigInfo
+                {
+                    ServiceUrl = serviceURI,
+                    ServiceNameSpace = serviceNameSpace,
+                    LanguageType = cboLanguage.SelectedIndex,
+                    ServiceType = cboServiceType.SelectedIndex,
+                    IsGenerateAsyncMethods = chkAsyncMethods.IsChecked.Value,
+                    IsJustGenerateServices = chkJustServices.IsChecked.Value
+                };
 
-                AddReferenceConfigInfo config = new AddReferenceConfigInfo();
-                config.ServiceUrl = serviceURI;
-                config.ServiceNameSpace = serviceNameSpace;
-                config.LanguageType = cboLanguage.SelectedIndex;
-                config.ServiceType = cboServiceType.SelectedIndex;
+                string fullFilePath = BaseLanguageMap.DownloadService(servicePath, config);
+
+               
                 string signalGoSettingPath = Path.Combine(servicePath, "setting.signalgo");
                 File.WriteAllText(signalGoSettingPath, JsonConvert.SerializeObject(config), Encoding.UTF8);
 

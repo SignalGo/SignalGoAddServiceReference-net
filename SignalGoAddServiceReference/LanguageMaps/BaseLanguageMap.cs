@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Newtonsoft.Json;
 using SignalGo.Shared.Models.ServiceReference;
+using SignalGoAddServiceReference.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,15 +27,15 @@ namespace SignalGoAddServiceReference.LanguageMaps
 // </auto-generated>";
         }
 
-        public static string DownloadService(string uri, string servicePath, string serviceNameSpace, int selectedLanguage, int serviceType)
+        public static string DownloadService(string servicePath, AddReferenceConfigInfo config)
         {
             string fullFilePath = "";
-            if (serviceType == 0)
+            if (config.ServiceType == 0)
             {
-                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(uri);
+                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(config.ServiceUrl);
                 webRequest.ContentType = "SignalGo Service Reference";
-                webRequest.Headers.Add("servicenamespace", serviceNameSpace);
-                webRequest.Headers.Add("selectedLanguage", selectedLanguage.ToString());
+                webRequest.Headers.Add("servicenamespace", config.ServiceNameSpace);
+                webRequest.Headers.Add("selectedLanguage", config.LanguageType.ToString());
                 WebResponse response = webRequest.GetResponse();
                 if (response.ContentLength <= 0)
                     throw new Exception("Url ContentLength is not set!");
@@ -57,34 +58,34 @@ namespace SignalGoAddServiceReference.LanguageMaps
                     //var namespaceReferenceInfo = (NamespaceReferenceInfo)JsonConvert.DeserializeObject(json, typeof(NamespaceReferenceInfo), new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore, Converters = new List<JsonConverter>() { new DataExchangeConverter(LimitExchangeType.IncomingCall) { Server = null, Client = null, IsEnabledReferenceResolver = true, IsEnabledReferenceResolverForArray = true } }, Formatting = Formatting.None, NullValueHandling = NullValueHandling.Ignore });
                     NamespaceReferenceInfo namespaceReferenceInfo = (NamespaceReferenceInfo)JsonConvert.DeserializeObject(json, typeof(NamespaceReferenceInfo), new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore, Formatting = Formatting.None, NullValueHandling = NullValueHandling.Ignore });
 
-                    if (selectedLanguage == 0)
+                    if (config.LanguageType == 0)
                     {
                         fullFilePath = Path.Combine(servicePath, "Reference.cs");
-                        File.WriteAllText(fullFilePath, CsharpLanguageMap.CalculateMapData(namespaceReferenceInfo, serviceNameSpace), Encoding.UTF8);
+                        File.WriteAllText(fullFilePath, CsharpLanguageMap.CalculateMapData(namespaceReferenceInfo, config), Encoding.UTF8);
                     }
-                    else if (selectedLanguage == 1)
+                    else if (config.LanguageType == 1)
                     {
                         fullFilePath = Path.Combine(servicePath, "Reference.ts");
                         TypeScriptLanguageMap typeScriptLanguageMap = new TypeScriptLanguageMap();
-                        File.WriteAllText(fullFilePath, typeScriptLanguageMap.CalculateMapData(servicePath, namespaceReferenceInfo, serviceNameSpace), Encoding.UTF8);
+                        File.WriteAllText(fullFilePath, typeScriptLanguageMap.CalculateMapData(servicePath, namespaceReferenceInfo, config.ServiceNameSpace), Encoding.UTF8);
                     }
-                    else if (selectedLanguage == 2)
+                    else if (config.LanguageType == 2)
                     {
                         fullFilePath = Path.Combine(servicePath, "Reference.cs");
-                        File.WriteAllText(fullFilePath, BlazorLanguageMap.CalculateMapData(namespaceReferenceInfo, serviceNameSpace), Encoding.UTF8);
+                        File.WriteAllText(fullFilePath, BlazorLanguageMap.CalculateMapData(namespaceReferenceInfo, config.ServiceNameSpace), Encoding.UTF8);
                     }
                 }
             }
             else
             {
-                if (selectedLanguage > 0)
+                if (config.LanguageType > 0)
                     throw new NotSupportedException("this language for this type not supported now!");
                 CsharpWebService.XMLToCsharp xmlCsharp = new CsharpWebService.XMLToCsharp();
-                xmlCsharp.Generate(uri);
+                xmlCsharp.Generate(config.ServiceUrl);
                 string csharpCode = xmlCsharp.GeneratesharpCode();
                 fullFilePath = Path.Combine(servicePath, "Reference.cs");
                 StringBuilder builder = new StringBuilder();
-                builder.AppendLine($"namespace {serviceNameSpace}");
+                builder.AppendLine($"namespace {config.ServiceNameSpace}");
                 builder.AppendLine("{");
                 builder.AppendLine(csharpCode);
                 builder.AppendLine("}");

@@ -12,5 +12,7 @@ namespace SignalGoAddServiceReference.Models
         public string ServiceNameSpace { get; set; }
         public int LanguageType { get; set; }
         public int ServiceType { get; set; }
+        public bool IsJustGenerateServices { get; set; }
+        public bool IsGenerateAsyncMethods { get; set; } = true;
     }
 }

@@ -153,7 +153,7 @@ namespace SignalGoAddServiceReference
 
                     if (Uri.TryCreate(config.ServiceUrl, UriKind.Absolute, out Uri uri))
                     {
-                        BaseLanguageMap.DownloadService(config.ServiceUrl, directory, config.ServiceNameSpace, config.LanguageType, config.ServiceType);
+                        BaseLanguageMap.DownloadService(directory, config);
                         MessageBox.Show("Update success!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     else
