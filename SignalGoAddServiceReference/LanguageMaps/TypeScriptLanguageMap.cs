@@ -206,7 +206,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 builderResult.AppendLine("export namespace " + groupInfo.Key + " {");
                 foreach (ClassReferenceInfo modelInfo in groupInfo)
                 {
-                    GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault());
+                    GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault(), serviceName);
                 }
                 builderResult.AppendLine("}");
                 builderResult.AppendLine("");
@@ -247,6 +247,20 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 builderResult.AppendLine("}");
                 builderResult.AppendLine("");
             }
+
+            //create base namespace
+            builderResult.AppendLine("export namespace SignalGoReference.Models {");
+            builderResult.AppendLine("");
+            builderResult.AppendLine(@"
+    export class KeyValuePair<TKey,TValue>{
+        Key: TKey;
+        Value: TValue;
+    }
+    export class Dictionary3<TKey,TValue> {
+        [Key: string]: TValue;
+    }");
+
+            builderResult.AppendLine("}");
             builderResult.AppendLine("}");
 
 
@@ -256,7 +270,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
         private void GenerateMethod(string serviceName, MethodReferenceInfo methodInfo, string prefix, StringBuilder resultBuilder, bool doSemicolon, string baseServiceName)
         {
             StringBuilder builder = new StringBuilder();
-            string returnTypeName = GetReturnTypeName(methodInfo.ReturnTypeName);
+            string returnTypeName = GetReturnTypeName(methodInfo.ReturnTypeName, baseServiceName);
             builder.AppendLine($"{prefix}{methodInfo.DuplicateName}({GenerateMethodParameters(methodInfo, baseServiceName)}): Promise<{returnTypeName}> {{");
             builder.Append($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
             int index = 0;
@@ -281,10 +295,10 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 resultBuilder.AppendLine(result);
         }
 
-        private void GenerateProperty(PropertyReferenceInfo propertyInfo, string prefix, bool generateOnPropertyChanged, StringBuilder builder)
+        private void GenerateProperty(PropertyReferenceInfo propertyInfo, string prefix, bool generateOnPropertyChanged, StringBuilder builder, string baseServiceName)
         {
             bool isNullable = propertyInfo.ReturnTypeName.Contains("?");
-            propertyInfo.ReturnTypeName = GetReturnTypeName(propertyInfo.ReturnTypeName);
+            propertyInfo.ReturnTypeName = GetReturnTypeName(propertyInfo.ReturnTypeName, baseServiceName);
             //create field
             builder.AppendLine($"{prefix}{propertyInfo.Name}{(isNullable ? "?" : "")}: {propertyInfo.ReturnTypeName};");
 
@@ -303,7 +317,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             builder.AppendLine();
         }
 
-        private static string GetReturnTypeName(string name)
+        private static string GetReturnTypeName(string name, string serviceName)
         {
             string baseBaseName = name;
             Dictionary<string, string> returnTypes = new Dictionary<string, string>()
@@ -364,8 +378,23 @@ namespace SignalGoAddServiceReference.LanguageMaps
             }
             else if (name.Contains("System.Collections.Generic.Dictionary<"))
             {
-                //name = name.Replace("System.Collections.Generic.List<", "List<");
-                name = "{}";
+                name = name.Replace("System.Collections.Generic.Dictionary<", serviceName + ".SignalGoReference.Models.Dictionary<");
+                //name = "{}";
+            }
+            foreach (KeyValuePair<string, string> item in returnTypes)
+            {
+                string text1 = $"<{item.Key}";
+                string text2 = $"{item.Key},";
+                string text3 = $"{item.Key}>";
+                string text4 = $",{item.Key}";
+                if (name.Contains(text1))
+                    name = name.Replace(text1, $"<{item.Value}");
+                else if (name.Contains(text2))
+                    name = name.Replace(text2, $"{item.Value},");
+                else if (name.Contains(text3))
+                    name = name.Replace(text3, $"{item.Value}>");
+                else if (name.Contains(text4))
+                    name = name.Replace(text4, $",{item.Value}");
             }
             //string findName = name;
             bool hasSuffix = false;
@@ -474,7 +503,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             {
                 if (index > 0)
                     builder.Append(", ");
-                builder.Append($"{item.Name}: {GetReturnTypeName(item.TypeName)}");
+                builder.Append($"{item.Name}: {GetReturnTypeName(item.TypeName, baseServiceName)}");
                 index++;
             }
             return builder.ToString();
@@ -522,7 +551,7 @@ import {{ {baseServiceName} }} from './Reference';
 
         private List<string> GeneratedModels { get; set; } = new List<string>();
 
-        private void GenerateModelClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, MapDataClassInfo mapDataClassInfo)
+        private void GenerateModelClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, MapDataClassInfo mapDataClassInfo, string baseServiceName)
         {
             string mainName = classReferenceInfo.Name;
             if (mainName.Contains("<"))
@@ -548,7 +577,7 @@ import {{ {baseServiceName} }} from './Reference';
             {
                 if (GeneratedModels.Contains(classReferenceInfo.NameSpace + "." + name))
                     return;
-                GeneratedModels.Add(classReferenceInfo.NameSpace +"."+ name);
+                GeneratedModels.Add(classReferenceInfo.NameSpace + "." + name);
                 classReferenceInfo.Name = name;
                 //RenamedModels.Add(classReferenceInfo.NameSpace + "." + name, classReferenceInfo.NameSpace + "." + oldName);
             }
@@ -560,7 +589,7 @@ import {{ {baseServiceName} }} from './Reference';
             {
                 if (mapDataClassInfo != null && mapDataClassInfo.IgnoreProperties.Contains(propertyInfo.Name))
                     continue;
-                GenerateProperty(propertyInfo, prefix + prefix, false, builder);
+                GenerateProperty(propertyInfo, prefix + prefix, false, builder, baseServiceName);
             }
             if (mapDataClassInfo != null && !string.IsNullOrEmpty(mapDataClassInfo.Body))
                 builder.AppendLine(mapDataClassInfo.Body);
