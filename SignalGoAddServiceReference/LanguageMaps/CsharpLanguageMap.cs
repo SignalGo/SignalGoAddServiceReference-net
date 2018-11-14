@@ -167,6 +167,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
             {
                 builderResult.AppendLine("using " + item + ";");
             }
+            builderResult.AppendLine("using System;");
             usingsOfClass.Add(namespaceReferenceInfo.Name + ".Interfaces");
             usingsOfClass.Add(namespaceReferenceInfo.Name + ".ServerServices");
             usingsOfClass.Add(namespaceReferenceInfo.Name + ".HttpServices");
