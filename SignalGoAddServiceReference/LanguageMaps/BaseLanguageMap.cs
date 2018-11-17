@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Windows;
 
 namespace SignalGoAddServiceReference.LanguageMaps
 {
@@ -65,9 +66,18 @@ namespace SignalGoAddServiceReference.LanguageMaps
                     }
                     else if (config.LanguageType == 1)
                     {
-                        fullFilePath = Path.Combine(servicePath, "Reference.ts");
+                        var oldPath = Path.Combine(servicePath, "OldAngular");
+                        var newPath = Path.Combine(servicePath, "NewAngular");
+                        fullFilePath = Path.Combine(oldPath, "Reference.ts");
+                        if (!Directory.Exists(oldPath))
+                            Directory.CreateDirectory(oldPath);
                         TypeScriptLanguageMap typeScriptLanguageMap = new TypeScriptLanguageMap();
-                        File.WriteAllText(fullFilePath, typeScriptLanguageMap.CalculateMapData(servicePath, namespaceReferenceInfo, config.ServiceNameSpace), Encoding.UTF8);
+                        File.WriteAllText(fullFilePath, typeScriptLanguageMap.CalculateMapData(oldPath, namespaceReferenceInfo, config.ServiceNameSpace), Encoding.UTF8);
+
+                        AngularTypeScriptLanguageMap angularTypeScriptLanguageMap = new AngularTypeScriptLanguageMap();
+                        angularTypeScriptLanguageMap.CalculateMapData(newPath, namespaceReferenceInfo, config.ServiceNameSpace);
+
+                        MessageBox.Show("Angular sources are compiled in OldAngular and NewAngular folder");
                     }
                     else if (config.LanguageType == 2)
                     {

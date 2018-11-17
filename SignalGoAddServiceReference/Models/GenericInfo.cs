@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SignalGoAddServiceReference.Models
 {
@@ -17,7 +16,7 @@ namespace SignalGoAddServiceReference.Models
             {
                 stringBuilder.Append(Name);
                 stringBuilder.Append('<');
-                foreach (var item in Childs)
+                foreach (GenericInfo item in Childs)
                 {
                     stringBuilder.Append(item.ToString());
                     if (Childs.Last() != item)
@@ -30,6 +29,48 @@ namespace SignalGoAddServiceReference.Models
                 stringBuilder.Append(Name);
             }
             return stringBuilder.ToString();
+        }
+
+        public void ClearNameSpaces(Func<string, string> clearString)
+        {
+            int index = Name.LastIndexOf('.');
+            if (index >= 0)
+            {
+                string name = clearString(Name.Substring(index + 1));
+                Name = name;
+            }
+            if (Childs != null)
+            {
+                foreach (GenericInfo item in Childs)
+                {
+                    item.ClearNameSpaces(clearString);
+                }
+            }
+        }
+
+        public void GetNameSpaces(Dictionary<string, List<string>> keyValuePairs, Func<string, string> clearString)
+        {
+            int index = Name.LastIndexOf('.');
+            if (index >= 0)
+            {
+                string nameSpace = clearString(Name.Substring(0, index));
+                if (!keyValuePairs.TryGetValue(nameSpace, out List<string> items))
+                {
+                    keyValuePairs.Add(nameSpace, new List<string>() { Name.Substring(index + 1) });
+                }
+                else
+                {
+                    if (!items.Contains(Name.Substring(index + 1)))
+                        items.Add(Name.Substring(index + 1));
+                }
+            }
+            if (Childs != null)
+            {
+                foreach (GenericInfo item in Childs)
+                {
+                    item.GetNameSpaces(keyValuePairs, clearString);
+                }
+            }
         }
 
         public static GenericInfo GenerateGeneric(string parent)
@@ -47,7 +88,7 @@ namespace SignalGoAddServiceReference.Models
             List<GenericInfo> result = new List<GenericInfo>();
             string childText = GetBetween(parent, '<', '>');
             List<string> split = Split(childText, '<', '>', ',');
-            foreach (var item in split)
+            foreach (string item in split)
             {
                 result.Add(GenerateGeneric(item));
             }
