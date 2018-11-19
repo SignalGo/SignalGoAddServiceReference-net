@@ -30,7 +30,7 @@ namespace SignalGoAddServiceReference.LanguageMaps
                 if (Path.GetExtension(fileName).ToLower() == ".ts")
                 {
                     string dir = Path.GetDirectoryName(fileName);
-                    if (File.Exists(Path.Combine(dir, "setting.signalgo")))
+                    if (File.Exists(Path.Combine(dir, "setting.signalgo")) || !File.Exists(fileName))
                         continue;
                     string fileText = File.ReadAllText(fileName, Encoding.UTF8);
                     if (fileText.Contains("ModelMappAttribute(") || fileText.Contains("ModelMapp("))
