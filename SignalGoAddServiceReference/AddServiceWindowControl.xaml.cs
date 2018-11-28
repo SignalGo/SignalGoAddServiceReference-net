@@ -5,7 +5,9 @@
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
     using Newtonsoft.Json;
-    using SignalGoAddServiceReference.LanguageMaps;
+    using SignalGo.CodeGenerator.Helpers;
+    using SignalGo.CodeGenerator.Models;
+    using SignalGoAddServiceReference.Helpers;
     using SignalGoAddServiceReference.Models;
     using System;
     using System.IO;
@@ -81,7 +83,7 @@
         {
             try
             {
-                Project project = BaseLanguageMap.GetActiveProject();
+                var project = ((ProjectInfo)LanguageMap.Current.GetActiveProject()).Project;
                 string projectPath = project.FullName;
                 string servicesFolder = Path.Combine(Path.GetDirectoryName(projectPath), "Connected Services");
                 if (!Directory.Exists(servicesFolder))
@@ -113,7 +115,7 @@
                     IsJustGenerateServices = chkJustServices.IsChecked.Value
                 };
 
-                string fullFilePath = BaseLanguageMap.DownloadService(servicePath, config);
+                string fullFilePath = LanguageMap.Current.DownloadService(servicePath, config);
 
                
                 string signalGoSettingPath = Path.Combine(servicePath, "setting.signalgo");

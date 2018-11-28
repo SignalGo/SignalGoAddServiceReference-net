@@ -7,8 +7,9 @@ using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Newtonsoft.Json;
-using SignalGoAddServiceReference.LanguageMaps;
-using SignalGoAddServiceReference.Models;
+using SignalGo.CodeGenerator.Helpers;
+using SignalGo.CodeGenerator.Models;
+using SignalGoAddServiceReference.Helpers;
 
 namespace SignalGoAddServiceReference
 {
@@ -153,7 +154,7 @@ namespace SignalGoAddServiceReference
 
                     if (Uri.TryCreate(config.ServiceUrl, UriKind.Absolute, out Uri uri))
                     {
-                        BaseLanguageMap.DownloadService(directory, config);
+                        LanguageMap.Current.DownloadService(directory, config);
                         MessageBox.Show("Update success!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     else

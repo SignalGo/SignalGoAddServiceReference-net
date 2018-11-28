@@ -13,9 +13,7 @@
         <Tags>signalgo signal server</Tags>
     </Metadata>
     <Installation AllUsers="true">
-        <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[11.0,)" />
-        <InstallationTarget Version="[11.0,)" Id="Microsoft.VisualStudio.Community" />
-        <InstallationTarget Version="[11.0,)" Id="Microsoft.VisualStudio.Enterprise" />
+        <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,16.0)" />
     </Installation>
     <Dependencies>
         <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
@@ -25,9 +23,6 @@
         <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
     </Prerequisites>
     <Assets>
-        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="Newtonsoft.Json.dll" AssemblyName="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed" />
-        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="Microsoft.VisualStudio.Shell.11.0.dll" AssemblyName="Microsoft.VisualStudio.Shell.11.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="Microsoft.VisualStudio.Shell.12.0.dll" AssemblyName="Microsoft.VisualStudio.Shell.12.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="Microsoft.VisualStudio.Shell.14.0.dll" AssemblyName="Microsoft.VisualStudio.Shell.14.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="SignalGo.CodeGenerator" Path="|SignalGo.CodeGenerator|" AssemblyName="|SignalGo.CodeGenerator;AssemblyName|" />
     </Assets>
 </PackageManifest>
