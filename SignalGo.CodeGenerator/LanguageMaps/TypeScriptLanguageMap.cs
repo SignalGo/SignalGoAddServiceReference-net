@@ -16,10 +16,10 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         public string CalculateMapData(string savePath, NamespaceReferenceInfo namespaceReferenceInfo, string serviceName)
         {
             namespaceReferenceInfo = JsonConvert.DeserializeObject<NamespaceReferenceInfo>(JsonConvert.SerializeObject(namespaceReferenceInfo));
-            var project = LanguageMapBase.GetCurrent.GetActiveProject();
+            ProjectInfoBase project = LanguageMapBase.GetCurrent.GetActiveProject();
             List<MapDataClassInfo> MapDataClassInfoes = new List<MapDataClassInfo>();
             List<string> usingsOfClass = new List<string>();
-            foreach (var projectItem in LanguageMapBase.GetCurrent.GetAllProjectItemsWithoutServices(project.ProjectItemsInfoBase))
+            foreach (ProjectItemInfoBase projectItem in LanguageMapBase.GetCurrent.GetAllProjectItemsWithoutServices(project.ProjectItemsInfoBase))
             {
                 if (projectItem.GetFileCount() == 0)
                     continue;
@@ -229,6 +229,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                         continue;
                     result = result.Replace(space, serviceName + "." + space);
                 }
+                httpClassInfo.ServiceName = httpClassInfo.ServiceName.Replace("/", "").Replace("\\", "");
                 File.WriteAllText(Path.Combine(savePath, httpClassInfo.ServiceName + "Service.ts"), result, Encoding.UTF8);
             }
             //builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".ClientServices");

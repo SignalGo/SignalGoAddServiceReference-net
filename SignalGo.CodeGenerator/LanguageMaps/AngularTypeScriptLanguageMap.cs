@@ -1,12 +1,12 @@
-﻿using SignalGo.Shared.Models.ServiceReference;
+﻿using SignalGo.CodeGenerator.Helpers;
 using SignalGo.CodeGenerator.Models;
+using SignalGo.Shared.Models.ServiceReference;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using SignalGo.CodeGenerator.Helpers;
 
 namespace SignalGo.CodeGenerator.LanguageMaps
 {
@@ -18,11 +18,11 @@ namespace SignalGo.CodeGenerator.LanguageMaps
     {
         public void CalculateMapData(string savePath, NamespaceReferenceInfo namespaceReferenceInfo, string serviceName)
         {
-            var project = LanguageMapBase.GetCurrent.GetActiveProject();
+            ProjectInfoBase project = LanguageMapBase.GetCurrent.GetActiveProject();
             List<MapDataClassInfo> MapDataClassInfoes = new List<MapDataClassInfo>();
             List<string> usingsOfClass = new List<string>();
             string fileName = "";
-            foreach (var projectItem in LanguageMapBase.GetCurrent.GetAllProjectItemsWithoutServices(project.ProjectItemsInfoBase))
+            foreach (ProjectItemInfoBase projectItem in LanguageMapBase.GetCurrent.GetAllProjectItemsWithoutServices(project.ProjectItemsInfoBase))
             {
                 if (projectItem.GetFileCount() == 0)
                     continue;
@@ -167,7 +167,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             string folder = "";
 
 
-            foreach (IGrouping<string, ClassReferenceInfo> groupInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ModelLevel).GroupBy(x => x.NameSpace))
+            foreach (IGrouping<string, ClassReferenceInfo> groupInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ModelLevel || x.Type == ClassReferenceType.InterfaceLevel).GroupBy(x => x.NameSpace))
             {
                 //namespaces.Add(groupInfo.Key);
                 folder = Path.Combine(savePath, groupInfo.Key);
@@ -223,7 +223,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 //    result = result.Replace(space, serviceName + "." + space);
                 //}
                 builder.Replace("*$-SignalGoNameSpaces-!*", nameSpacesResult.ToString());
-                File.WriteAllText(Path.Combine(savePath, httpClassInfo.ServiceName + "Service.ts"), builder.ToString(), Encoding.UTF8);
+                File.WriteAllText(Path.Combine(savePath, httpClassInfo.ServiceName.Replace("/", "").Replace("\\", "") + "Service.ts"), builder.ToString(), Encoding.UTF8);
             }
 
 
@@ -379,13 +379,15 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             //}
             if (name.Contains("System.Collections.Generic.ICollection<"))
             {
-                //name = name.Replace("System.Collections.Generic.ICollection<", "List<");
                 name = RemoveBlockToArray("System.Collections.Generic.ICollection<", name);
             }
             if (name.Contains("System.Collections.Generic.List<"))
             {
-                //name = name.Replace("System.Collections.Generic.List<", "List<");
                 name = RemoveBlockToArray("System.Collections.Generic.List<", name);
+            }
+            if (name.Contains("System.Collections.Generic.IEnumerable<"))
+            {
+                name = RemoveBlockToArray("System.Collections.Generic.IEnumerable<", name);
             }
             if (name.Contains("System.Collections.Generic.Dictionary<"))
             {
@@ -555,7 +557,7 @@ import {{ ServerConnectionService }} from './server-connection.service';
   providedIn: 'root'
 }})");
             string serviceName = FirstCharToUpper(classReferenceInfo.ServiceName);
-            builder.AppendLine(prefix + "export class " + serviceName + "Service {");
+            builder.AppendLine(prefix + "export class " + serviceName.Replace("/", "").Replace("\\", "") + "Service {");
             builder.AppendLine(prefix + prefix + "constructor(private server: ServerConnectionService) { }");
             foreach (MethodReferenceInfo methodInfo in classReferenceInfo.Methods)
             {
@@ -597,7 +599,7 @@ import {{ ServerConnectionService }} from './server-connection.service';
             generic.GetNameSpaces(data, ClearString);
             foreach (KeyValuePair<string, List<string>> item in data)
             {
-                foreach (var value in item.Value)
+                foreach (string value in item.Value)
                 {
                     string full = FixIllegalChars(item.Key + "." + value);
                     if (fixedReturnTypes.ContainsKey(full.ToLower()))
