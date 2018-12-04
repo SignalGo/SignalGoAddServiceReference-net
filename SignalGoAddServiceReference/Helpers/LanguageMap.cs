@@ -60,11 +60,13 @@ namespace SignalGoAddServiceReference.Helpers
                     //var namespaceReferenceInfo = (NamespaceReferenceInfo)JsonConvert.DeserializeObject(json, typeof(NamespaceReferenceInfo), new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore, Converters = new List<JsonConverter>() { new DataExchangeConverter(LimitExchangeType.IncomingCall) { Server = null, Client = null, IsEnabledReferenceResolver = true, IsEnabledReferenceResolverForArray = true } }, Formatting = Formatting.None, NullValueHandling = NullValueHandling.Ignore });
                     NamespaceReferenceInfo namespaceReferenceInfo = (NamespaceReferenceInfo)JsonConvert.DeserializeObject(json, typeof(NamespaceReferenceInfo), new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore, Formatting = Formatting.None, NullValueHandling = NullValueHandling.Ignore });
 
+                    //csharp
                     if (config.LanguageType == 0)
                     {
                         fullFilePath = Path.Combine(servicePath, "Reference.cs");
                         File.WriteAllText(fullFilePath, CsharpLanguageMap.CalculateMapData(namespaceReferenceInfo, config), Encoding.UTF8);
                     }
+                    //angular
                     else if (config.LanguageType == 1)
                     {
                         string oldPath = Path.Combine(servicePath, "OldAngular");
@@ -79,10 +81,23 @@ namespace SignalGoAddServiceReference.Helpers
                         angularTypeScriptLanguageMap.CalculateMapData(newPath, namespaceReferenceInfo, config.ServiceNameSpace);
 
                     }
+                    //blazor
                     else if (config.LanguageType == 2)
                     {
                         fullFilePath = Path.Combine(servicePath, "Reference.cs");
                         File.WriteAllText(fullFilePath, BlazorLanguageMap.CalculateMapData(namespaceReferenceInfo, config.ServiceNameSpace), Encoding.UTF8);
+                    }
+                    //java android
+                    else if (config.LanguageType == 3)
+                    {
+                        JavaAndroidLanguageMap javaAndroidLanguageMap = new JavaAndroidLanguageMap();
+                        javaAndroidLanguageMap.CalculateMapData(servicePath, namespaceReferenceInfo, config.ServiceNameSpace);
+                    }
+                    //swift
+                    else if (config.LanguageType == 4)
+                    {
+                        SwiftLanguageMap swiftLanguageMap = new SwiftLanguageMap();
+                        swiftLanguageMap.CalculateMapData(servicePath, namespaceReferenceInfo, config.ServiceNameSpace);
                     }
                 }
             }

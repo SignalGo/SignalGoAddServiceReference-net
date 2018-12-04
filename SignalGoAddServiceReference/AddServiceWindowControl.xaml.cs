@@ -5,7 +5,6 @@
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
     using Newtonsoft.Json;
-    using SignalGo.CodeGenerator.Helpers;
     using SignalGo.CodeGenerator.Models;
     using SignalGoAddServiceReference.Helpers;
     using SignalGoAddServiceReference.Models;
@@ -83,7 +82,7 @@
         {
             try
             {
-                var project = ((ProjectInfo)LanguageMap.Current.GetActiveProject()).Project;
+                Project project = ((ProjectInfo)LanguageMap.Current.GetActiveProject()).Project;
                 string projectPath = project.FullName;
                 string servicesFolder = Path.Combine(Path.GetDirectoryName(projectPath), "Connected Services");
                 if (!Directory.Exists(servicesFolder))
@@ -117,11 +116,12 @@
 
                 string fullFilePath = LanguageMap.Current.DownloadService(servicePath, config);
 
-               
+
                 string signalGoSettingPath = Path.Combine(servicePath, "setting.signalgo");
                 File.WriteAllText(signalGoSettingPath, JsonConvert.SerializeObject(config), Encoding.UTF8);
 
-                project.ProjectItems.AddFromFile(fullFilePath);
+                if (!string.IsNullOrEmpty(fullFilePath))
+                    project.ProjectItems.AddFromFile(fullFilePath);
                 FinishedAction?.Invoke();
                 MessageBox.Show($"Service {serviceNameSpace} created", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
