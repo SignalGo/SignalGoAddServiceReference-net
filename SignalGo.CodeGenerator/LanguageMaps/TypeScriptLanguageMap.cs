@@ -335,6 +335,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 { "long","number" },
                 { "double","number" },
                 { "byte","number" },
+                { "float","number" },
                 { "short","number" },
                 { "uint","number" },
                 { "ushort","number" },
@@ -349,6 +350,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 { "System.Int16[]","number[]" },
                 { "System.Int32[]","number[]" },
                 { "System.Int64[]","number[]" },
+                { "byte[]","number[]" },
 
                 { "System.DateTime","Date" },
                 { "System.Guid","string" },

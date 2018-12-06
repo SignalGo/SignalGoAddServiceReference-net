@@ -186,6 +186,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
                     foreach (KeyValuePair<string, Dictionary<string, string>> item in namespaces)
                     {
+                        if (item.Key == modelInfo.NameSpace + "." + modelInfo.Name)
+                            continue;
                         foreach (KeyValuePair<string, string> keyValue in item.Value)
                         {
                             nameSpacesResult.AppendLine($"import {{{ keyValue.Value }}} from \"../{keyValue.Key}/{keyValue.Value}\"");
@@ -350,6 +352,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 { "system.int16[]","number[]" },
                 { "system.int32[]","number[]" },
                 { "system.int64[]","number[]" },
+                { "byte[]","number[]" },
 
                 { "system.datetime","Date" },
                 { "system.date","Date" },
@@ -362,12 +365,12 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
             name = name.Replace("?", "");
             if (fixedReturnTypes.ContainsKey(name.ToLower()))
-                name = ReplaceIgnoreCase(name, name, fixedReturnTypes[name.ToLower()]);
+                name = name.Replace(name, fixedReturnTypes[name.ToLower()], StringComparison.OrdinalIgnoreCase);
 
             foreach (KeyValuePair<string, string> item in fixedReturnTypes)
             {
                 if (name.ToLower().Contains("<" + item.Key + ">"))
-                    name = ReplaceIgnoreCase(name, "<" + item.Key + ">", "<" + item.Value + ">");
+                    name = name.Replace("<" + item.Key + ">", "<" + item.Value + ">", StringComparison.OrdinalIgnoreCase);
             }
             //if (name.StartsWith("System.Collections.Generic.ICollection<"))
             //{
@@ -396,18 +399,21 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             }
             foreach (KeyValuePair<string, string> item in fixedReturnTypes)
             {
-                string text1 = $"<{item.Key}";
+                string text1 = $"<{item.Key} ";
+                string text5 = $"<{item.Key},";
                 string text2 = $"{item.Key},";
                 string text3 = $"{item.Key}>";
                 string text4 = $",{item.Key}";
                 if (name.ToLower().Contains(text1))
-                    name = ReplaceIgnoreCase(name, text1, $"<{item.Value}");
+                    name = name.Replace(text1, $"<{item.Value}", StringComparison.OrdinalIgnoreCase);
+                else if (name.ToLower().Contains(text5))
+                    name = name.Replace(text5, $"<{item.Value}", StringComparison.OrdinalIgnoreCase);
                 else if (name.ToLower().Contains(text2))
-                    name = ReplaceIgnoreCase(name, text2, $"{item.Value},");
+                    name = name.Replace(text2, $"{item.Value},", StringComparison.OrdinalIgnoreCase);
                 else if (name.ToLower().Contains(text3))
-                    name = ReplaceIgnoreCase(name, text3, $"{item.Value}>");
+                    name = name.Replace(text3, $"{item.Value}>", StringComparison.OrdinalIgnoreCase);
                 else if (name.ToLower().Contains(text4))
-                    name = ReplaceIgnoreCase(name, text4, $",{item.Value}");
+                    name = name.Replace(text4, $",{item.Value}", StringComparison.OrdinalIgnoreCase);
             }
             //string findName = name;
             bool hasSuffix = false;
@@ -427,10 +433,6 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             return AddToDictionary(nameSpaces, name);
         }
 
-        private static string ReplaceIgnoreCase(string input, string str1, string str2)
-        {
-            return Regex.Replace(input, str1, str2, RegexOptions.IgnoreCase);
-        }
 
         private static string FixIllegalChars(string name)
         {

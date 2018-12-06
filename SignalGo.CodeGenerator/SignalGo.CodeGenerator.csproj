@@ -7,6 +7,11 @@
     <AssemblyOriginatorKeyFile>alivisualstudio.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="LanguageMaps\BaseLanguageMap.cs" />
   </ItemGroup>

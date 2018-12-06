@@ -13,6 +13,8 @@ namespace SignalGo.CodeGenerator.Models
     {
         public string Name { get; set; }
         public List<GenericInfo> Childs { get; set; }
+        public bool DoNumbericTemplate { get; internal set; } = true;
+
         public override string ToString()
         {
             StringBuilder stringBuilder = new StringBuilder();
@@ -77,24 +79,26 @@ namespace SignalGo.CodeGenerator.Models
             }
         }
 
-        public static GenericInfo GenerateGeneric(string parent)
+        public static GenericInfo GenerateGeneric(string parent, bool doNumericTemplate = true)
         {
             GenericInfo genericInfo = new GenericInfo
             {
-                Name = GetName(parent),
-                Childs = FindChilds(parent)
+                DoNumbericTemplate = doNumericTemplate
             };
+            genericInfo.Childs = genericInfo.FindChilds(parent);
+            genericInfo.Name = genericInfo.GetName(parent);
+
             return genericInfo;
         }
 
-        private static List<GenericInfo> FindChilds(string parent)
+        private List<GenericInfo> FindChilds(string parent)
         {
             List<GenericInfo> result = new List<GenericInfo>();
             string childText = GetBetween(parent, '<', '>');
             List<string> split = Split(childText, '<', '>', ',');
             foreach (string item in split)
             {
-                result.Add(GenerateGeneric(item));
+                result.Add(GenerateGeneric(item, DoNumbericTemplate));
             }
             return result;
         }
@@ -154,7 +158,7 @@ namespace SignalGo.CodeGenerator.Models
             return result;
         }
 
-        private static string GetName(string parent)
+        private string GetName(string parent)
         {
             if (!parent.Contains('<'))
                 return parent;
@@ -162,7 +166,10 @@ namespace SignalGo.CodeGenerator.Models
             string fixName = TakeBlock(parent, '<', '>', '<', '>');
             int indexName = fixName.Count(x => x == '>' || x == '<' || x == ',');
             string getName = parent.Substring(0, findIndex);
-            return getName + indexName;
+            if (DoNumbericTemplate)
+                return getName + indexName;
+            else
+                return getName;
         }
 
         private static string TakeBlock(string text, char startBlock, char endBlock, char plusChar, char endPlusChar)
