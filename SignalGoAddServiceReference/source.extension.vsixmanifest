@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="SignalGoExtension.0bde2334-d8c9-4dc4-851f-61016c295347" Version="4.0" Language="en-US" Publisher="Ali Yousefi" />
+        <Identity Id="SignalGoExtension.0bde2334-d8c9-4dc4-851f-61016c295347" Version="4.1" Language="en-US" Publisher="Ali Yousefi" />
         <DisplayName>SignalGoExtension</DisplayName>
         <Description xml:space="preserve">Add or Update Signal Go Services, this will automatic generate models and services for signalgo client side</Description>
         <MoreInfo>https://github.com/SignalGo/SignalGo-full-net/wiki/Add-Service-Reference---Auto-generate-all-services-and-models-in-client-side</MoreInfo>
@@ -13,7 +13,9 @@
         <Tags>signalgo signal server</Tags>
     </Metadata>
     <Installation AllUsers="true">
-        <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,16.0)" />
+        <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[11.0,)" />
+        <InstallationTarget Version="[11.0,)" Id="Microsoft.VisualStudio.Community" />
+        <InstallationTarget Version="[11.0,)" Id="Microsoft.VisualStudio.Enterprise" />
     </Installation>
     <Dependencies>
         <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
