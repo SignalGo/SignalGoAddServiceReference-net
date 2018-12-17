@@ -7,4 +7,6 @@ support for signalgo 4.3+
 ## 1.Angular Services
 ## 2.Blazor Services
 ## 3.SOAP Services
-## 3.C# Services (Fully Support http,signalgo,websocket,oneway,streams)
+## 4.C# Services (Fully Support http,signalgo,websocket,oneway,streams)
+## 5.Java Models
+## 6.Swift Models
