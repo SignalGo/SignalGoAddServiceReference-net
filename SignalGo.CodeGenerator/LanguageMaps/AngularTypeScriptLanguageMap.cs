@@ -353,6 +353,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 { "system.int32[]","number[]" },
                 { "system.int64[]","number[]" },
                 { "byte[]","number[]" },
+                { "int[]","number[]" },
+                { "long[]","number[]" },
 
                 { "system.datetime","Date" },
                 { "system.date","Date" },
