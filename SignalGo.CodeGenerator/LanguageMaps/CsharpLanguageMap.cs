@@ -14,10 +14,10 @@ namespace SignalGo.CodeGenerator.LanguageMaps
     {
         public static string CalculateMapData(NamespaceReferenceInfo namespaceReferenceInfo, AddReferenceConfigInfo config)
         {
-            var project = LanguageMapBase.GetCurrent.GetActiveProject();
+            ProjectInfoBase project = LanguageMapBase.GetCurrent.GetActiveProject();
             List<MapDataClassInfo> MapDataClassInfoes = new List<MapDataClassInfo>();
             List<string> usingsOfClass = new List<string>();
-            foreach (var projectItem in LanguageMapBase.GetCurrent.GetAllProjectItemsWithoutServices(project.ProjectItemsInfoBase))
+            foreach (ProjectItemInfoBase projectItem in LanguageMapBase.GetCurrent.GetAllProjectItemsWithoutServices(project.ProjectItemsInfoBase))
             {
                 if (projectItem.GetFileCount() == 0)
                     continue;
@@ -216,7 +216,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             builderResult.AppendLine("{");
             foreach (ClassReferenceInfo classInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.StreamLevel))
             {
-                GenerateServiceClass(classInfo, "    ", builderResult, config.IsGenerateAsyncMethods, "ServiceType.StreamService");
+                GenerateStreamServiceClass(classInfo, "    ", builderResult, config.IsGenerateAsyncMethods, "ServiceType.StreamService");
             }
             builderResult.AppendLine("}");
             builderResult.AppendLine("");
@@ -353,6 +353,40 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             builder.AppendLine(prefix + "}");
         }
 
+        private static void GenerateStreamServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, bool generateAyncMethods, string serviceType)
+        {
+            string serviceAttribute = $@"[ServiceContract(""{classReferenceInfo.ServiceName}"",{serviceType}, InstanceType.SingleInstance)]";
+            builder.AppendLine(prefix + serviceAttribute);
+            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.Name + $" : I{classReferenceInfo.Name}");
+            builder.AppendLine(prefix + "{");
+            builder.AppendLine($@"        public string ServerAddress {{ get; set; }}
+        public int? Port {{ get; set; }}
+        private string ServiceName {{ get; set; }}
+
+        private SignalGo.Client.ClientProvider CurrentProvider {{ get; set; }}
+        public {classReferenceInfo.Name}(SignalGo.Client.ClientProvider clientProvider = null)
+        {{
+            CurrentProvider = clientProvider;
+            ServiceName = GetType().GetServerServiceName(true);
+        }}
+
+        public {classReferenceInfo.Name}(string serverAddress = null, int? port = null, SignalGo.Client.ClientProvider clientProvider = null)
+        {{
+            ServerAddress = serverAddress;
+            Port = port;
+            CurrentProvider = clientProvider;
+            ServiceName = GetType().GetServerServiceName(true);
+        }}");
+            foreach (MethodReferenceInfo methodInfo in classReferenceInfo.Methods)
+            {
+                GenerateStreamMethod(methodInfo, prefix + prefix, builder);
+                if (generateAyncMethods)
+                    GenerateStreamAsyncMethod(methodInfo, prefix + prefix, builder);
+            }
+
+            builder.AppendLine(prefix + "}");
+        }
+
         private static void GenerateServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, bool generateAyncMethods, string serviceType)
         {
             string serviceAttribute = $@"[ServiceContract(""{classReferenceInfo.ServiceName}"",{serviceType}, InstanceType.SingleInstance)]";
@@ -396,6 +430,48 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
             builder.AppendLine($"{prefix + prefix}return {result};");
 
+            builder.AppendLine($"{prefix}}}");
+        }
+
+        private static void GenerateStreamMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder)
+        {
+            builder.AppendLine($"{prefix}public {methodInfo.ReturnTypeName} {methodInfo.Name}({GenerateMethodParameters(methodInfo)})");
+            builder.AppendLine($"{prefix}{{");
+            string returnType = methodInfo.ReturnTypeName;
+            string returnValue = "return ";
+            if (returnType == "void")
+            {
+                returnValue = "";
+                returnType = "object";
+            }
+            builder.AppendLine($"{prefix + prefix}{returnValue} SignalGo.Client.ClientProvider.UploadStreamSync<{returnType}>(CurrentProvider, ServerAddress, Port, ServiceName ,\"{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
+            builder.AppendLine($"{prefix + prefix}{{");
+            string streamParameter = GenerateHttpMethodParameters(methodInfo, prefix, builder, false);
+            builder.AppendLine($"{prefix + prefix}}}, {streamParameter});");
+            builder.AppendLine($"{prefix}}}");
+        }
+
+        private static void GenerateStreamAsyncMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder)
+        {
+            string returnType = "Task";
+            string returnTypeValue = "";
+            if (methodInfo.ReturnTypeName != "void")
+            {
+                returnType = "Task<" + methodInfo.ReturnTypeName + ">";
+                returnTypeValue = "<" + methodInfo.ReturnTypeName + ">";
+            }
+            string normalReturnType = methodInfo.ReturnTypeName;
+            if (normalReturnType == "void")
+            {
+                normalReturnType = "object";
+            }
+
+            builder.AppendLine($"{prefix}public {returnType} {methodInfo.Name}Async({GenerateMethodParameters(methodInfo)})");
+            builder.AppendLine($"{prefix}{{");
+            builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientProvider.UploadStreamAsync<{normalReturnType}>(CurrentProvider, ServerAddress, Port, ServiceName ,\"{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
+            builder.AppendLine($"{prefix + prefix}{{");
+            string streamParameter = GenerateHttpMethodParameters(methodInfo, prefix, builder, false);
+            builder.AppendLine($"{prefix + prefix}}}, {streamParameter});");
             builder.AppendLine($"{prefix}}}");
         }
 
@@ -519,12 +595,16 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             }
         }
 
-        private static void GenerateHttpMethodParameters(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder, bool doSemicolon = true)
+        private static string GenerateHttpMethodParameters(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder, bool doSemicolon = true)
         {
+            string streamParameterName = "null";
             foreach (ParameterReferenceInfo parameter in methodInfo.Parameters)
             {
                 builder.AppendLine($"{prefix + prefix + prefix} new  SignalGo.Shared.Models.ParameterInfo() {{ Name = nameof({parameter.Name}),Value = SignalGo.Client.ClientSerializationHelper.SerializeObject({parameter.Name}) }},");
+                if (parameter.TypeName.StartsWith("SignalGo.Shared.Models.StreamInfo"))
+                    streamParameterName = parameter.Name;
             }
+            return streamParameterName;
         }
         private static string GenerateMethodParametersWitoutTypes(MethodReferenceInfo methodInfo)
         {
