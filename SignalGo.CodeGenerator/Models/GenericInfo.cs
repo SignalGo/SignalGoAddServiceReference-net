@@ -5,6 +5,12 @@ using System.Text;
 
 namespace SignalGo.CodeGenerator.Models
 {
+    public enum GenericNumbericTemeplateType : byte
+    {
+        Skip = 0,
+        DoNumberic = 1,
+        Managed = 2
+    }
     /// <summary>
     /// handle full generic class string to object access
     /// for example List<Message<Data>>
@@ -13,7 +19,8 @@ namespace SignalGo.CodeGenerator.Models
     {
         public string Name { get; set; }
         public List<GenericInfo> Childs { get; set; }
-        public bool DoNumbericTemplate { get; internal set; } = true;
+        public GenericNumbericTemeplateType DoNumbericTemplate { get; internal set; } = GenericNumbericTemeplateType.DoNumberic;
+        public Func<string, bool> CanDoNumbericFunction { get; set; }
 
         public override string ToString()
         {
@@ -79,15 +86,15 @@ namespace SignalGo.CodeGenerator.Models
             }
         }
 
-        public static GenericInfo GenerateGeneric(string parent, bool doNumericTemplate = true)
+        public static GenericInfo GenerateGeneric(string parent, GenericNumbericTemeplateType doNumericTemplate = GenericNumbericTemeplateType.DoNumberic, Func<string, bool> canDoNumbericFunction = null)
         {
             GenericInfo genericInfo = new GenericInfo
             {
                 DoNumbericTemplate = doNumericTemplate
             };
+            genericInfo.CanDoNumbericFunction = canDoNumbericFunction;
             genericInfo.Childs = genericInfo.FindChilds(parent);
             genericInfo.Name = genericInfo.GetName(parent);
-
             return genericInfo;
         }
 
@@ -98,7 +105,7 @@ namespace SignalGo.CodeGenerator.Models
             List<string> split = Split(childText, '<', '>', ',');
             foreach (string item in split)
             {
-                result.Add(GenerateGeneric(item, DoNumbericTemplate));
+                result.Add(GenerateGeneric(item, DoNumbericTemplate, CanDoNumbericFunction));
             }
             return result;
         }
@@ -166,8 +173,15 @@ namespace SignalGo.CodeGenerator.Models
             string fixName = TakeBlock(parent, '<', '>', '<', '>');
             int indexName = fixName.Count(x => x == '>' || x == '<' || x == ',');
             string getName = parent.Substring(0, findIndex);
-            if (DoNumbericTemplate)
+            if (DoNumbericTemplate == GenericNumbericTemeplateType.DoNumberic)
                 return getName + indexName;
+            else if (DoNumbericTemplate == GenericNumbericTemeplateType.Managed)
+            {
+                if (CanDoNumbericFunction(getName))
+                    return getName + indexName;
+                else
+                    return getName;
+            }
             else
                 return getName;
         }

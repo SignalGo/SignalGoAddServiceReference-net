@@ -409,7 +409,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 if (name.ToLower().Contains(text1))
                     name = name.Replace(text1, $"<{item.Value}", StringComparison.OrdinalIgnoreCase);
                 else if (name.ToLower().Contains(text5))
-                    name = name.Replace(text5, $"<{item.Value}", StringComparison.OrdinalIgnoreCase);
+                    name = name.Replace(text5, $"<{item.Value},", StringComparison.OrdinalIgnoreCase);
                 else if (name.ToLower().Contains(text2))
                     name = name.Replace(text2, $"{item.Value},", StringComparison.OrdinalIgnoreCase);
                 else if (name.ToLower().Contains(text3))

@@ -99,6 +99,12 @@ namespace SignalGoAddServiceReference.Helpers
                         SwiftLanguageMap swiftLanguageMap = new SwiftLanguageMap();
                         swiftLanguageMap.CalculateMapData(servicePath, namespaceReferenceInfo, config.ServiceNameSpace);
                     }
+                    //dart
+                    else if (config.LanguageType == 5)
+                    {
+                        DartFlutterLanguageMap dartFlutterLanguageMap = new DartFlutterLanguageMap();
+                        dartFlutterLanguageMap.CalculateMapData(servicePath, namespaceReferenceInfo, config.ServiceNameSpace);
+                    }
                 }
             }
             else
