@@ -51,6 +51,13 @@
       <Group guid="guidUpdateSignalGoServicePackageCmdSet" id="aMenuGroup" priority="0x0001">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_FOLDERNODE" />
       </Group>
+
+      <Group guid="guidConfigSignalGoServicePackageCmdSet" id="aMenuGroup" priority="0x0001">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE" />
+      </Group>
+      <Group guid="guidConfigSignalGoServicePackageCmdSet" id="aMenuGroup" priority="0x0001">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_FOLDERNODE" />
+      </Group>
     </Groups>
 
     <!--Buttons section. -->
@@ -84,6 +91,14 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Update SignalGo Service...</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidConfigSignalGoServicePackageCmdSet" id="cmdidConfigSignalGoServiceCommand" priority="0x0001" type="Button">
+        <Parent guid="guidConfigSignalGoServicePackageCmdSet" id="aMenuGroup" />
+        <Icon guid="guidAddImage" id="bmpAdd" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Config SignalGo Service...</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -125,7 +140,10 @@
       <IDSymbol value="4128" name="aMenuGroup" />
       <IDSymbol value="256" name="cmdidUpdateSignalGoServiceCommand" />
     </GuidSymbol>
-
+    <GuidSymbol value="{2665a80a-ad4e-4fc1-b426-5fc503b88fb1}" name="guidConfigSignalGoServicePackageCmdSet">
+      <IDSymbol value="4128" name="aMenuGroup" />
+      <IDSymbol value="257" name="cmdidConfigSignalGoServiceCommand" />
+    </GuidSymbol>
     <!-- <GuidSymbol value="{eca38d1a-096a-4f5c-9506-b08812d4a3fc}" name="guidImages1">
       <IDSymbol name="bmpPic1" value="1" />
       <IDSymbol name="bmpPic2" value="2" />

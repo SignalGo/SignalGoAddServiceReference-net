@@ -85,6 +85,7 @@ namespace SignalGoAddServiceReference
             base.Initialize();
             AddServiceWindowCommand.Initialize(this);
             UpdateSignalGoServiceCommand.Initialize(this);
+            ConfigSignalGoServiceCommand.Initialize(this);
 
         }
 

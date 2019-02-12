@@ -123,7 +123,7 @@
                 if (!string.IsNullOrEmpty(fullFilePath))
                     project.ProjectItems.AddFromFile(fullFilePath);
                 FinishedAction?.Invoke();
-                MessageBox.Show($"Service {serviceNameSpace} created", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show($"Service {serviceNameSpace} generated", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {

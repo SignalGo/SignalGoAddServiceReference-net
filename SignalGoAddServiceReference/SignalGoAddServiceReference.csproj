@@ -67,6 +67,7 @@
     </Compile>
     <Compile Include="AddSignalGoService.cs" />
     <Compile Include="AddSignalGoServicePackage.cs" />
+    <Compile Include="ConfigSignalGoServiceCommand.cs" />
     <Compile Include="Helpers\LanguageMap.cs" />
     <Compile Include="Models\ProjectInfo.cs" />
     <Compile Include="Models\ProjectItemInfo.cs" />

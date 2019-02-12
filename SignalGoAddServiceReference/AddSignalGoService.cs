@@ -1,9 +1,6 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Shell;
+using System;
 using System.ComponentModel.Design;
-using System.Globalization;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SignalGoAddServiceReference
 {
@@ -41,11 +38,11 @@ namespace SignalGoAddServiceReference
 
             this.package = package;
 
-            OleMenuCommandService commandService = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+            OleMenuCommandService commandService = ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (commandService != null)
             {
-                var menuCommandID = new CommandID(CommandSet, CommandId);
-                var menuItem = new MenuCommand(this.MenuItemCallback, menuCommandID);
+                CommandID menuCommandID = new CommandID(CommandSet, CommandId);
+                MenuCommand menuItem = new MenuCommand(MenuItemCallback, menuCommandID);
                 commandService.AddCommand(menuItem);
             }
         }
@@ -66,7 +63,7 @@ namespace SignalGoAddServiceReference
         {
             get
             {
-                return this.package;
+                return package;
             }
         }
 
@@ -88,7 +85,14 @@ namespace SignalGoAddServiceReference
         /// <param name="e">Event args.</param>
         private void MenuItemCallback(object sender, EventArgs e)
         {
-            AddServiceWindow addServiceWindow = new AddServiceWindow() { Width = 400, Height = 150, ResizeMode = System.Windows.ResizeMode.NoResize, WindowState = System.Windows.WindowState.Normal, WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen };
+            AddServiceWindow addServiceWindow = new AddServiceWindow()
+            {
+                Width = 400,
+                Height = 150,
+                ResizeMode = System.Windows.ResizeMode.NoResize,
+                WindowState = System.Windows.WindowState.Normal,
+                WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen
+            };
             addServiceWindow.ShowDialog();
         }
     }
