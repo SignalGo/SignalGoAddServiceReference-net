@@ -340,7 +340,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         {
             string serviceAttribute = $@"{prefix}[ServiceContract(""{classReferenceInfo.ServiceName}"", {serviceType}, InstanceType.SingleInstance)]";
             builder.AppendLine(serviceAttribute);
-            string interfacePrefix = "I";
+            string interfacePrefix = classReferenceInfo.ServiceName.StartsWith("i", StringComparison.OrdinalIgnoreCase) ? "" : "I";
             builder.AppendLine(prefix + $"public partial interface {interfacePrefix}{classReferenceInfo.Name}");
             builder.AppendLine(prefix + "{");
             foreach (MethodReferenceInfo methodInfo in classReferenceInfo.Methods)
