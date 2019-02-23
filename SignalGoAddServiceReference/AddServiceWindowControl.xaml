@@ -25,7 +25,7 @@
 			</Grid.RowDefinitions>
 			<Grid >
 				<TextBlock Margin="0,0,0,10" Text="This extension will create for you, in the client project, interfaces and classes needed by client to call methods you previously defined on server.  Both Sync and Async versions of methods will be created. You can use this extension or write your own manually.
-The code will be created into the &quot;Connected Services/ServiceName&quot; folder  (ServiceName is the name you choose here).&#x0a;&#x0a;The SignalGo Team" TextWrapping="Wrap"/>
+The code will be created into the &quot;Connected Services/MyAppServices&quot; folder  (MyAppServices is the name you choose here).&#x0a;&#x0a;The SignalGo Team" TextWrapping="Wrap"/>
 			</Grid>
 			<TextBlock Foreground="Black" Grid.Row="1" TextWrapping="Wrap" Text="Insert the server address (example:  &quot;https://localhost:8080/any&quot; (any  or your app name))" Margin="0,0,10,0"/>
 			<TextBox x:Name="txtServiceAddress" Grid.Row="2" />
