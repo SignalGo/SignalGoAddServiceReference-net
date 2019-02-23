@@ -80,6 +80,7 @@
         public Action FinishedAction { get; set; }
         private void btnAddService_Click(object sender, RoutedEventArgs e)
         {
+            Dispatcher.VerifyAccess();
             try
             {
                 Project project = ((ProjectInfo)LanguageMap.Current.GetActiveProject()).Project;
