@@ -29,7 +29,7 @@ The code will be created into the &quot;Connected Services/MyAppServices&quot; f
 			</Grid>
 			<TextBlock Foreground="Black" Grid.Row="1" TextWrapping="Wrap" Text="Insert the server address (example:  &quot;https://localhost:8080/any&quot; (any  or your app name))" Margin="0,0,10,0"/>
 			<TextBox x:Name="txtServiceAddress" Grid.Row="2" />
-			<TextBlock Foreground="Black" Grid.Row="3" TextWrapping="Wrap" Text="insert the Services namespace name that will host server services classes:  (example: &quot;MyAppServices&quot;)" Margin="0,10,10,0"/>
+			<TextBlock Foreground="Black" Grid.Row="3" TextWrapping="Wrap" Text="Insert the root namespace name that will host server services classes:  (example: &quot;MyAppServices&quot;)" Margin="0,10,10,0"/>
 			<TextBox x:Name="txtServiceName" Grid.Row="4" Margin="0,10,0,0"/>
 			<TextBlock Foreground="Black" Grid.Row="5" Text="Language Type:" Margin="0,10,10,0"/>
 			<ComboBox x:Name="cboLanguage" Background="White" Foreground="Black" Grid.Row="6" SelectedIndex="0" Margin="0,10,0,0">
