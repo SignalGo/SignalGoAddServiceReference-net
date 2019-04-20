@@ -345,8 +345,11 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 builder.AppendLine($"TypeBuilder.make<{name}>(TypeMode.Object)");
                 foreach (MethodReferenceInfo methodInfo in callbackClassInfo.Methods)
                 {
+                    string methodName = methodInfo.Name;
+                    if (methodName.EndsWith("Async"))
+                        methodName = methodName.Substring(0, methodName.Length - 5);
                     builder.AppendLine($@".addMethod(
-          ""{methodInfo.Name}"",
+          ""{methodName}"",
           {GenerateJsonInitializerParametersArray(methodInfo)},
           ({name} x, {GenerateJsonInitializerParametersKeyValue(methodInfo, true)}) =>
               x.{methodInfo.Name.ToCamelCase()}({GenerateJsonInitializerParametersKeyValue(methodInfo, false)}))");
@@ -440,7 +443,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             JsonAllGeneratedTypes.Add(name);
             GenericInfo generic = GenericInfo.GenerateGeneric(name, GenericNumbericTemeplateType.Managed, (typeName) =>
             {
-                if (typeName == "List" || typeName == "Map")
+                if (typeName.Trim() == "List" || typeName.Trim() == "Map")
                     return false;
                 return true;
             });
@@ -514,7 +517,21 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 if (findClass == null)
                 {
                     if (generic.Childs.Count > 0)
-                        fullName2 = generic.Name + "<T>";
+                    {
+                        if (generic.Childs.Count == 1)
+                            fullName2 = generic.Name + "<T>";
+                        else
+                        {
+                            fullName2 = generic.Name + "<T,";
+                            int i = 2;
+                            foreach (GenericInfo item in generic.Childs.Skip(1))
+                            {
+                                fullName2 += " T" + i + ",";
+                            }
+                            fullName2 = fullName2.Remove(fullName2.Length - 1, 1);
+                            fullName2 += ">";
+                        }
+                    }
                     fileName = generic.Name + ".dart";
                     findClass = FindClassByName(namespaceReferenceInfo, fullName2);
                 }
@@ -549,6 +566,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 StringBuilder properties = new StringBuilder();
                 GenerateJsonProperties(properties, findClass, generic);
                 GenerateJsonBaseClasses(properties, namespaceReferenceInfo, findClass, generic);
+                if (JsonVariablesTypes.ContainsKey(genericName))
+                    throw new Exception($"Type {genericName} is duplicate but same name,please rename it and try again");
                 JsonVariablesTypes.Add(genericName, $"typeInfo{ generatedJsonIndex}");
                 builder.AppendLine($@"var typeInfo{generatedJsonIndex} = TypeBuilder.make<{genericName}>({typeMode})
       {properties.ToString()}
@@ -571,39 +590,46 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 return;
             foreach (PropertyReferenceInfo property in classReferenceInfo.Properties)
             {
-                if (generic.Childs.Count > 0)
+                if (property.ReturnTypeName == "T" || (property.ReturnTypeName.StartsWith("T") && int.TryParse(property.ReturnTypeName.Substring(1), out int detected)))
+                    continue;
+                string addPropertyName = "addProperty";
+                string instancePropertyContent = "";
+                if (property.ReturnTypeName.StartsWith("List<"))
                 {
-                    string fullName = generic.ToString();
-                    string child = generic.Childs.FirstOrDefault().ToString();
-                    string addPropertyName = "addProperty";
-                    string instancePropertyContent = "";
-                    if (child.StartsWith("List<"))
-                    {
-                        addPropertyName = "addPropertyWithInstance";
-                        instancePropertyContent = $@",
-          () => new {child}()";
-                    }
-                    builder.AppendLine($@".{addPropertyName}<{child}>(
-          ""{property.Name.ToCamelCase()}"",
-          TypeMode.Object,
-          ({fullName} x) => x.{property.Name.ToCamelCase()},
-          ({fullName} x, {child} value) => x.{property.Name.ToCamelCase()} = value{instancePropertyContent})");
-                }
-                else
-                {
-                    string addPropertyName = "addProperty";
-                    string instancePropertyContent = "";
-                    if (property.ReturnTypeName.StartsWith("List<"))
-                    {
-                        addPropertyName = "addPropertyWithInstance";
-                        instancePropertyContent = $@",
+                    addPropertyName = "addPropertyWithInstance";
+                    instancePropertyContent = $@",
           () => new {property.ReturnTypeName}()";
-                    }
-                    builder.AppendLine($@".{addPropertyName}<{property.ReturnTypeName}>(
+                }
+                builder.AppendLine($@".{addPropertyName}<{property.ReturnTypeName}>(
           ""{property.Name.ToCamelCase()}"",
           TypeMode.Object,
           ({classReferenceInfo.Name} x) => x.{property.Name.ToCamelCase()},
           ({classReferenceInfo.Name} x, {property.ReturnTypeName} value) => x.{property.Name.ToCamelCase()} = value{instancePropertyContent})");
+            }
+            if (generic.Childs.Count > 0)
+            {
+                int index = 0;
+                foreach (PropertyReferenceInfo property in classReferenceInfo.Properties)
+                {
+                    if (property.ReturnTypeName == "T" || (property.ReturnTypeName.StartsWith("T") && int.TryParse(property.ReturnTypeName.Substring(1), out int detected)))
+                    {
+                        string fullName = generic.ToString();
+                        string child = generic.Childs[index].ToString();
+                        string addPropertyName = "addProperty";
+                        string instancePropertyContent = "";
+                        if (child.StartsWith("List<"))
+                        {
+                            addPropertyName = "addPropertyWithInstance";
+                            instancePropertyContent = $@",
+                        () => new {child}()";
+                        }
+                        builder.AppendLine($@".{addPropertyName}<{child}>(
+                        ""{property.Name.ToCamelCase()}"",
+                        TypeMode.Object,
+                        ({fullName} x) => x.{property.Name.ToCamelCase()},
+                        ({fullName} x, {child} value) => x.{property.Name.ToCamelCase()} = value{instancePropertyContent})");
+                        index++;
+                    }
                 }
             }
         }
@@ -983,11 +1009,11 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             if (string.IsNullOrEmpty(fullName) || fullName == "SignalGo.Shared.Http.ActionResult")
                 return fullName;
             GenericInfo generic = GenericInfo.GenerateGeneric(fullName, GenericNumbericTemeplateType.Managed, (name) =>
-             {
-                 if (name == "List" || name == "Map")
-                     return false;
-                 return true;
-             });
+            {
+                if (name.Trim() == "List" || name.Trim() == "Map")
+                    return false;
+                return true;
+            });
 
             Dictionary<string, List<string>> data = new Dictionary<string, List<string>>();
             generic.GetNameSpaces(data, ClearString);
@@ -1009,11 +1035,23 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     }
                 }
             }
+            AddGenericToJsonAllTypes(fullName);
             generic.ClearNameSpaces(ClearString);
             string result = generic.ToString();
             if (!JsonAllTypes.Contains(fullName.Trim()))
                 JsonAllTypes.Add(fullName.Trim());
             return result;
+        }
+
+        private void AddGenericToJsonAllTypes(string fullName)
+        {
+            GenericInfo generic = GenericInfo.GenerateGeneric(fullName, GenericNumbericTemeplateType.Skip);
+            if (!JsonAllTypes.Contains(fullName.Trim()))
+                JsonAllTypes.Add(fullName.Trim());
+            foreach (var item in generic.Childs)
+            {
+                AddGenericToJsonAllTypes(item.ToString());
+            }
         }
 
         private List<string> GeneratedModels { get; set; } = new List<string>();
