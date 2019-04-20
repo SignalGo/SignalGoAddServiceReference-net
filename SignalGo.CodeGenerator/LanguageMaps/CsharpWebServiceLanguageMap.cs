@@ -16,8 +16,15 @@ namespace SignalGo.CodeGenerator.LanguageMaps.CsharpWebService
             using (WebClient client = new WebClient())
             {
                 XDocument doc = XDocument.Parse(client.DownloadString(url));
-                string className = doc.Elements().FirstOrDefault().Attribute("name").Value;
-                BaseClassInfo = new ClassInfo() { Name = className, TargetNameSpace = doc.Elements().FirstOrDefault().Attribute("targetNamespace").Value, Url = url.Substring(0, url.LastIndexOf("wsdl", StringComparison.OrdinalIgnoreCase)) + "service" };
+                if (doc.Elements().FirstOrDefault().Attribute("name") != null)
+                {
+                    string className = doc.Elements().FirstOrDefault().Attribute("name").Value;
+                    BaseClassInfo = new ClassInfo() { Name = className, TargetNameSpace = doc.Elements().FirstOrDefault().Attribute("targetNamespace").Value, Url = url.Substring(0, url.LastIndexOf("wsdl", StringComparison.OrdinalIgnoreCase)) + "service" };
+                }
+                else
+                {
+                    BaseClassInfo = new ClassInfo() { Name = "NoName", TargetNameSpace = doc.Elements().FirstOrDefault().Attribute("targetNamespace").Value, Url = url.Substring(0, url.LastIndexOf("wsdl", StringComparison.OrdinalIgnoreCase)) + "service" };
+                }
                 ClassesGenerated.Add(BaseClassInfo);
                 XmlReader(doc);
 
@@ -97,6 +104,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps.CsharpWebService
                 if (item.Name.LocalName == "element")
                 {
                     XElement parent = FindMethodName(item);
+                    if (parent == null)
+                        continue;
                     string methodName = parent.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("name")).Value;
                     if (BaseClassInfo.SkipMethods.Contains(methodName))
                         continue;
