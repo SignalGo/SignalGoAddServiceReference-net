@@ -340,7 +340,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         {
             string serviceAttribute = $@"{prefix}[ServiceContract(""{classReferenceInfo.ServiceName}"", {serviceType}, InstanceType.SingleInstance)]";
             builder.AppendLine(serviceAttribute);
-            string interfacePrefix = classReferenceInfo.ServiceName.StartsWith("i", StringComparison.OrdinalIgnoreCase) ? "" : "I";
+            string interfacePrefix = classReferenceInfo.Name.StartsWith("i", StringComparison.OrdinalIgnoreCase) && classReferenceInfo.Name.Length > 1 && classReferenceInfo.Name[1] == 'I' ? "" : "I";
             builder.AppendLine(prefix + $"public partial interface {interfacePrefix}{classReferenceInfo.Name}");
             builder.AppendLine(prefix + "{");
             foreach (MethodReferenceInfo methodInfo in classReferenceInfo.Methods)
@@ -553,20 +553,35 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         private static void GenerateHttpMethod(MethodReferenceInfo methodInfo, string serviceName, string prefix, StringBuilder builder, bool doSemicolon = true)
         {
             builder.AppendLine($"{prefix}public {methodInfo.ReturnTypeName} {methodInfo.Name}({GenerateMethodParameters(methodInfo)}){(doSemicolon ? ";" : "")}");
+            bool isStream = methodInfo.ReturnTypeName.StartsWith("SignalGo.Shared.Models.StreamInfo");
             //generate empty data
             if (!doSemicolon)
             {
+                string uploadParameter = "";
+                if (methodInfo.Parameters.Any(x => x.TypeName.StartsWith("SignalGo.Shared.Models.StreamInfo")))
+                {
+                    uploadParameter = $", {methodInfo.Parameters.Where(x => x.TypeName.StartsWith("SignalGo.Shared.Models.StreamInfo")).Select(x => x.Name).FirstOrDefault()}";
+                }
                 builder.AppendLine($"{prefix}{{");
-                builder.AppendLine($"{prefix + prefix}SignalGo.Client.HttpClientResponse result = _httpClient.Post(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
+                if (isStream)
+                    builder.AppendLine($"{prefix + prefix}SignalGo.Client.HttpClientResponseBase result = _httpClient.PostHead(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
+                else
+                    builder.AppendLine($"{prefix + prefix}SignalGo.Client.HttpClientResponse result = _httpClient.Post(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
                 builder.AppendLine($"{prefix + prefix}{{");
                 GenerateHttpMethodParameters(methodInfo, prefix, builder, doSemicolon);
-                builder.AppendLine($"{prefix + prefix}}});");
+                builder.AppendLine($"{prefix + prefix}}}{uploadParameter});");
                 builder.AppendLine($"{prefix + prefix}ResponseHeaders = result.ResponseHeaders;");
                 builder.AppendLine($"{prefix + prefix}Status = result.Status;");
-                builder.AppendLine($"{prefix + prefix}if (Status == System.Net.HttpStatusCode.InternalServerError)");
-                builder.AppendLine($"{prefix + prefix + prefix}throw new Exception(result.Data);");
-                if (methodInfo.ReturnTypeName != "void")
-                    builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientSerializationHelper.DeserializeObject<{methodInfo.ReturnTypeName}>(result.Data);");
+                if (!isStream)
+                {
+                    builder.AppendLine($"{prefix + prefix}if (Status == System.Net.HttpStatusCode.InternalServerError)");
+                    builder.AppendLine($"{prefix + prefix + prefix}throw new Exception(result.Data);");
+                    if (methodInfo.ReturnTypeName != "void")
+                        builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientSerializationHelper.DeserializeObject<{methodInfo.ReturnTypeName}>(result.Data);");
+                }
+                else
+                    builder.AppendLine($"{prefix + prefix}return result.GetStream<{methodInfo.ReturnTypeName}>();");
+
                 builder.AppendLine($"{prefix}}}");
             }
         }
@@ -576,21 +591,36 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             string returnType = "public async Task";
             if (methodInfo.ReturnTypeName != "void")
                 returnType = "public async Task<" + methodInfo.ReturnTypeName + ">";
+            bool isStream = methodInfo.ReturnTypeName.StartsWith("SignalGo.Shared.Models.StreamInfo");
             builder.AppendLine($"{prefix}{returnType} {methodInfo.Name}Async({GenerateMethodParameters(methodInfo)}){(doSemicolon ? ";" : "")}");
             //generate empty data
             if (!doSemicolon)
             {
+                string uploadParameter = "";
+                if (methodInfo.Parameters.Any(x => x.TypeName.StartsWith("SignalGo.Shared.Models.StreamInfo")))
+                {
+                    uploadParameter = $", {methodInfo.Parameters.Where(x => x.TypeName.StartsWith("SignalGo.Shared.Models.StreamInfo")).Select(x => x.Name).FirstOrDefault()}";
+                }
                 builder.AppendLine($"{prefix}{{");
-                builder.AppendLine($"{prefix + prefix}SignalGo.Client.HttpClientResponse result = await _httpClient.PostAsync(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
+                if (isStream)
+                    builder.AppendLine($"{prefix + prefix}SignalGo.Client.HttpClientResponseBase result = await _httpClient.PostHeadAsync(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
+                else
+                    builder.AppendLine($"{prefix + prefix}SignalGo.Client.HttpClientResponse result = await _httpClient.PostAsync(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
                 builder.AppendLine($"{prefix + prefix}{{");
                 GenerateHttpMethodParameters(methodInfo, prefix, builder, doSemicolon);
-                builder.AppendLine($"{prefix + prefix}}});");
+                builder.AppendLine($"{prefix + prefix}}}{uploadParameter});");
                 builder.AppendLine($"{prefix + prefix}ResponseHeaders = result.ResponseHeaders;");
                 builder.AppendLine($"{prefix + prefix}Status = result.Status;");
-                builder.AppendLine($"{prefix + prefix}if (Status == System.Net.HttpStatusCode.InternalServerError)");
-                builder.AppendLine($"{prefix + prefix + prefix}throw new Exception(result.Data);");
-                if (methodInfo.ReturnTypeName != "void")
-                    builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientSerializationHelper.DeserializeObject<{methodInfo.ReturnTypeName}>(result.Data);");
+                if (!isStream)
+                {
+                    builder.AppendLine($"{prefix + prefix}if (Status == System.Net.HttpStatusCode.InternalServerError)");
+                    builder.AppendLine($"{prefix + prefix + prefix}throw new Exception(result.Data);");
+                    if (methodInfo.ReturnTypeName != "void")
+                        builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientSerializationHelper.DeserializeObject<{methodInfo.ReturnTypeName}>(result.Data);");
+                }
+                else
+                    builder.AppendLine($"{prefix + prefix}return result.GetStream<{methodInfo.ReturnTypeName}>();");
+
                 builder.AppendLine($"{prefix}}}");
             }
         }
@@ -705,7 +735,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         public static string[] SplitWithIgnoreQuotes(string text, string splitText)
         {
-            return System.Text.RegularExpressions.Regex.Split(text, splitText + "(?=(?:[^\"|']*[\"|'][^\"|']*[\"|'])*[^\"|']*$)");
+            return System.Text.RegularExpressions.Regex.Split(text, splitText + "(?=(?:[^\"{}|']*[\"{}|'][^\"{}|']*[\"{}|'])*[^\"{}|']*$)");//(?=(?:[^\"|']*[\"|'][^\"|']*[\"|'])*[^\"|']*$)
         }
 
         public static string[] GetListOfUsing(string text)
