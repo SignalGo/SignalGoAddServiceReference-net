@@ -51,7 +51,7 @@ The code will be created into the &quot;Connected Services/MyAppServices&quot; f
 					<CheckBox x:Name="chkAsyncMethods" IsChecked="True" Content="Generate async methods"/>
 					<StackPanel>
 						<RadioButton x:Name="rdoIsAutomaticDetection" IsChecked="True" Content="Automatic sync and async detection"/>
-						<RadioButton Content="Only real methods"/>
+						<RadioButton x:Name="rdoIsRealMethods" Content="Only real methods"/>
 					</StackPanel>
 				</StackPanel>
 			</Expander>
