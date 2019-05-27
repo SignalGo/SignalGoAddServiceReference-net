@@ -439,7 +439,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private static void GenerateStreamMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder)
         {
-            builder.AppendLine($"{prefix}public {methodInfo.ReturnTypeName} {methodInfo.Name}({GenerateMethodParameters(methodInfo)})");
+            builder.AppendLine($"{prefix}public {methodInfo.ReturnTypeName} {methodInfo.Name.RemoveEndOfAsync()}({GenerateMethodParameters(methodInfo)})");
             builder.AppendLine($"{prefix}{{");
             string returnType = methodInfo.ReturnTypeName;
             string returnValue = "return ";
@@ -470,7 +470,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 normalReturnType = "object";
             }
 
-            builder.AppendLine($"{prefix}public {returnType} {methodInfo.Name}Async({GenerateMethodParameters(methodInfo)})");
+            builder.AppendLine($"{prefix}public {returnType} {methodInfo.Name.RemoveEndOfAsync()}Async({GenerateMethodParameters(methodInfo)})");
             builder.AppendLine($"{prefix}{{");
             builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientProvider.UploadStreamAsync<{normalReturnType}>(CurrentProvider, ServerAddress, Port, ServiceName ,\"{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
             builder.AppendLine($"{prefix + prefix}{{");
@@ -481,7 +481,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private static void GenerateMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder)
         {
-            builder.AppendLine($"{prefix}public {methodInfo.ReturnTypeName} {methodInfo.Name}({GenerateMethodParameters(methodInfo)})");
+            builder.AppendLine($"{prefix}public {methodInfo.ReturnTypeName} {methodInfo.Name.RemoveEndOfAsync()}({GenerateMethodParameters(methodInfo)})");
             builder.AppendLine($"{prefix}{{");
             string returnType = methodInfo.ReturnTypeName;
             string returnValue = "return ";
@@ -499,7 +499,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private static void GenerateInterfaceMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder)
         {
-            builder.AppendLine($"{prefix}{methodInfo.ReturnTypeName} {methodInfo.Name}({GenerateMethodParameters(methodInfo)});");
+            builder.AppendLine($"{prefix}{methodInfo.ReturnTypeName} {methodInfo.Name.RemoveEndOfAsync()}({GenerateMethodParameters(methodInfo)});");
         }
 
         private static void GenerateInterfaceMethodAsync(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder)
@@ -507,7 +507,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             string returnType = "Task";
             if (methodInfo.ReturnTypeName != "void")
                 returnType = "Task<" + methodInfo.ReturnTypeName + ">";
-            builder.AppendLine($"{prefix}{returnType} {methodInfo.Name}Async({GenerateMethodParameters(methodInfo)});");
+            builder.AppendLine($"{prefix}{returnType} {methodInfo.Name.RemoveEndOfAsync()}Async({GenerateMethodParameters(methodInfo)});");
         }
 
         private static void GenerateAsyncMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder)
@@ -519,7 +519,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 returnType = "Task<" + methodInfo.ReturnTypeName + ">";
                 returnTypeValue = "<" + methodInfo.ReturnTypeName + ">";
             }
-            builder.AppendLine($"{prefix}public {returnType} {methodInfo.Name}Async({GenerateMethodParameters(methodInfo)})");
+            builder.AppendLine($"{prefix}public {returnType} {methodInfo.Name.RemoveEndOfAsync()}Async({GenerateMethodParameters(methodInfo)})");
             builder.AppendLine($"{prefix}{{");
             builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientManager.ConnectorExtensions.SendDataAsync{returnTypeValue}(CurrentProvider, ServiceName,\"{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
             builder.AppendLine($"{prefix + prefix}{{");
@@ -556,7 +556,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private static void GenerateHttpMethod(MethodReferenceInfo methodInfo, string serviceName, string prefix, StringBuilder builder, bool doSemicolon = true)
         {
-            builder.AppendLine($"{prefix}public {methodInfo.ReturnTypeName} {methodInfo.Name}({GenerateMethodParameters(methodInfo)}){(doSemicolon ? ";" : "")}");
+            builder.AppendLine($"{prefix}public {methodInfo.ReturnTypeName} {methodInfo.Name.RemoveEndOfAsync()}({GenerateMethodParameters(methodInfo)}){(doSemicolon ? ";" : "")}");
             bool isStream = methodInfo.ReturnTypeName.StartsWith("SignalGo.Shared.Models.StreamInfo");
             //generate empty data
             if (!doSemicolon)
@@ -596,7 +596,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             if (methodInfo.ReturnTypeName != "void")
                 returnType = "public async Task<" + methodInfo.ReturnTypeName + ">";
             bool isStream = methodInfo.ReturnTypeName.StartsWith("SignalGo.Shared.Models.StreamInfo");
-            builder.AppendLine($"{prefix}{returnType} {methodInfo.Name}Async({GenerateMethodParameters(methodInfo)}){(doSemicolon ? ";" : "")}");
+            builder.AppendLine($"{prefix}{returnType} {methodInfo.Name.RemoveEndOfAsync()}Async({GenerateMethodParameters(methodInfo)}){(doSemicolon ? ";" : "")}");
             //generate empty data
             if (!doSemicolon)
             {
