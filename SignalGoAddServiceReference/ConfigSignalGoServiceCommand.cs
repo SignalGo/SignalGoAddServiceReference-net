@@ -163,6 +163,7 @@ namespace SignalGoAddServiceReference
                     content.cboServiceType.SelectedIndex = config.ServiceType;
                     content.chkJustServices.IsChecked = config.IsJustGenerateServices;
                     content.chkAsyncMethods.IsChecked = config.IsGenerateAsyncMethods;
+                    content.rdoIsAutomaticDetection.IsChecked = config.IsAutomaticSyncAndAsyncDetection;
                     addServiceWindow.ShowDialog();
                 }
                 else

@@ -112,7 +112,8 @@
                     LanguageType = cboLanguage.SelectedIndex,
                     ServiceType = cboServiceType.SelectedIndex,
                     IsGenerateAsyncMethods = chkAsyncMethods.IsChecked.Value,
-                    IsJustGenerateServices = chkJustServices.IsChecked.Value
+                    IsJustGenerateServices = chkJustServices.IsChecked.Value,
+                    IsAutomaticSyncAndAsyncDetection = rdoIsAutomaticDetection.IsChecked.Value
                 };
 
                 string fullFilePath = LanguageMap.Current.DownloadService(servicePath, config);

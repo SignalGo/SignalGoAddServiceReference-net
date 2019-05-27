@@ -49,6 +49,10 @@ The code will be created into the &quot;Connected Services/MyAppServices&quot; f
 				<StackPanel Margin="10">
 					<CheckBox x:Name="chkJustServices" Content="Just Services (no models, enums etc)"/>
 					<CheckBox x:Name="chkAsyncMethods" IsChecked="True" Content="Generate async methods"/>
+					<StackPanel>
+						<RadioButton x:Name="rdoIsAutomaticDetection" IsChecked="True" Content="Automatic sync and async detection"/>
+						<RadioButton Content="Only real methods"/>
+					</StackPanel>
 				</StackPanel>
 			</Expander>
 			<Button x:Name="btnAddService" Click="btnAddService_Click" Height="30" Grid.Row="10" Margin="0,10,0,0" Content="Generate"/>
