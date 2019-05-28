@@ -14,6 +14,6 @@ namespace SignalGo.CodeGenerator.Models
         public int ServiceType { get; set; }
         public bool IsJustGenerateServices { get; set; }
         public bool IsGenerateAsyncMethods { get; set; } = true;
-        public bool IsAutomaticSyncAndAsyncDetection { get; set; }
+        public bool IsAutomaticSyncAndAsyncDetection { get; set; } = true;
     }
 }
