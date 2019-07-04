@@ -254,7 +254,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     builderResult.AppendLine("{");
                     foreach (ClassReferenceInfo modelInfo in groupInfo)
                     {
-                        GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault());
+                        GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name && (x.Usings.Contains(modelInfo.NameSpace) || x.ServiceName == modelInfo.NameSpace)).FirstOrDefault());
                     }
                     builderResult.AppendLine("}");
                     builderResult.AppendLine("");
