@@ -111,7 +111,7 @@ namespace SignalGoAddServiceReference.Helpers
             {
                 if (config.LanguageType > 0)
                     throw new NotSupportedException("this language for this type not supported now!");
-                XMLToCsharp xmlCsharp = new XMLToCsharp();
+                XMLToCsharp2 xmlCsharp = new XMLToCsharp2();
                 xmlCsharp.Generate(config.ServiceUrl);
                 string csharpCode = xmlCsharp.GeneratesharpCode();
                 fullFilePath = Path.Combine(servicePath, "Reference.cs");

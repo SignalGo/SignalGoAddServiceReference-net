@@ -62,7 +62,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps.CsharpWebService
                     stringBuilder.AppendLine("\t\t});");
                     stringBuilder.AppendLine("\t\t}");
                 }
-                foreach (PropertyInfo property in classInfo.PropertyInfoes)
+                foreach (PropertyInfo property in classInfo.Properties)
                 {
                     stringBuilder.AppendLine($"\t\tpublic {property.ReturnType} {property.Name}{{ get; set; }}");
                 }
@@ -85,43 +85,56 @@ namespace SignalGo.CodeGenerator.LanguageMaps.CsharpWebService
         private ClassInfo BaseClassInfo { get; set; }
         private void XmlReader(XContainer doc)
         {
-            List<XElement> items = doc.Elements().ToList();
-            foreach (XElement item in items)
+            try
             {
-                if (item.Name.LocalName == "types")
+                List<XElement> items = doc.Elements().ToList();
+                foreach (XElement item in items)
                 {
-                    GenerateMethods(item.Elements().ToList());
+                    if (item.Name.LocalName == "types")
+                    {
+                        GenerateMethods(item.Elements().ToList());
+                    }
+                    XmlReader(item);
                 }
-                XmlReader(item);
+            }
+            catch (Exception ex)
+            {
+
             }
         }
 
         private void GenerateMethods(List<XElement> items)
         {
-            foreach (XElement item in items)
+            try
             {
-                GenerateMethods(item.Elements().ToList());
-                if (item.Name.LocalName == "element")
+                foreach (XElement item in items)
                 {
-                    XElement parent = FindMethodName(item);
-                    if (parent == null)
-                        continue;
-                    string methodName = parent.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("name")).Value;
-                    if (BaseClassInfo.SkipMethods.Contains(methodName))
-                        continue;
-                    string methodReponse = GetMethodResponse(parent, methodName, out ClassInfo returnType);
-                    if (!string.IsNullOrEmpty(methodReponse))
-                        BaseClassInfo.Methods.Add(new MethodInfo() { ReturnType = methodReponse, Name = methodName, ParameterInfoes = GetMethodParameters(parent), ReturnClassType = returnType });
-                    Console.WriteLine(item.NodeType + " " + item);
+                    GenerateMethods(item.Elements().ToList());
+                    if (item.Name.LocalName == "element")
+                    {
+                        XElement parent = FindMethodName(item);
+                        if (parent == null)
+                            continue;
+                        string methodName = parent.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("name")).Value;
+                        if (BaseClassInfo.SkipMethods.Contains(methodName))
+                            continue;
+                        string methodReponse = GetMethodResponse(parent, methodName, out ClassInfo returnType);
+                        if (!string.IsNullOrEmpty(methodReponse))
+                            BaseClassInfo.Methods.Add(new MethodInfo() { ReturnType = methodReponse, Name = methodName, ParameterInfoes = GetMethodParameters(parent), ReturnClassType = returnType });
+                        Console.WriteLine(item.NodeType + " " + item);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+
             }
         }
 
         private string GetMethodResponse(XElement element, string name, out ClassInfo returnType)
         {
             returnType = null;
-            XElement node = (XElement)element.NextNode;
-            if (node == null)
+            if (!(element.NextNode is XElement node))
                 return null;
             XAttribute attribute = node.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("name"));
             if (attribute != null && attribute.Value == name + "Response")
@@ -138,7 +151,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps.CsharpWebService
                     ClassInfo classInfo = new ClassInfo() { Name = className };
                     foreach (XElement item in elements)
                     {
-                        classInfo.PropertyInfoes.Add(new PropertyInfo() { ReturnType = CleanType(item.Attribute("type").Value), Name = item.Attribute("name").Value });
+                        classInfo.Properties.Add(new PropertyInfo() { ReturnType = CleanType(item.Attribute("type").Value), Name = item.Attribute("name").Value });
                     }
                     ClassesGenerated.Add(classInfo);
                     returnType = classInfo;
@@ -183,7 +196,11 @@ namespace SignalGo.CodeGenerator.LanguageMaps.CsharpWebService
             FindAllElements(element, elements);
             foreach (XElement item in elements)
             {
-                result.Add(new ParameterInfo() { Name = item.Attribute("name").Value, Type = CleanType(item.Attribute("type").Value) });
+                result.Add(new ParameterInfo()
+                {
+                    Name = item.Attribute("name") != null ? item.Attribute("name").Value : null,
+                    Type = item.Attribute("type") != null ? CleanType(item.Attribute("type").Value) : null
+                });
             }
             return result;
         }
@@ -201,36 +218,6 @@ namespace SignalGo.CodeGenerator.LanguageMaps.CsharpWebService
             }
             return name;
         }
-    }
-
-    public class ClassInfo
-    {
-        public string TargetNameSpace { get; set; }
-        public string Url { get; set; }
-        public string Name { get; set; }
-        public List<MethodInfo> Methods { get; set; } = new List<MethodInfo>();
-        public List<PropertyInfo> PropertyInfoes { get; set; } = new List<PropertyInfo>();
-        public List<string> SkipMethods { get; set; } = new List<string>();
-    }
-
-    public class PropertyInfo
-    {
-        public string Name { get; set; }
-        public string ReturnType { get; set; }
-    }
-
-    public class MethodInfo
-    {
-        public string Name { get; set; }
-        public string ReturnType { get; set; }
-        public ClassInfo ReturnClassType { get; set; }
-        public List<ParameterInfo> ParameterInfoes { get; set; } = new List<ParameterInfo>();
-    }
-
-    public class ParameterInfo
-    {
-        public string Name { get; set; }
-        public string Type { get; set; }
     }
 
 }
