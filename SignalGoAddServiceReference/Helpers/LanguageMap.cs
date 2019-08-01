@@ -113,14 +113,9 @@ namespace SignalGoAddServiceReference.Helpers
                     throw new NotSupportedException("this language for this type not supported now!");
                 XMLToCsharp2 xmlCsharp = new XMLToCsharp2();
                 xmlCsharp.Generate(config.ServiceUrl);
-                string csharpCode = xmlCsharp.GeneratesharpCode();
+                string csharpCode = xmlCsharp.GeneratesharpCode(config.ServiceNameSpace);
                 fullFilePath = Path.Combine(servicePath, "Reference.cs");
-                StringBuilder builder = new StringBuilder();
-                builder.AppendLine($"namespace {config.ServiceNameSpace}");
-                builder.AppendLine("{");
-                builder.AppendLine(csharpCode);
-                builder.AppendLine("}");
-                File.WriteAllText(fullFilePath, builder.ToString(), Encoding.UTF8);
+                File.WriteAllText(fullFilePath, csharpCode, Encoding.UTF8);
             }
             return fullFilePath;
         }
