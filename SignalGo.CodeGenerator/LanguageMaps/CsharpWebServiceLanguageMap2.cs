@@ -301,7 +301,10 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     {
                         typeName = $"{typeName}[]";
                     }
-
+                    else if (property.IsNullable && CanNullable(typeName))
+                    {
+                        typeName += "?";
+                    }
                     if (property.XmlType == XmlType.Attribute)
                         stringBuilder.AppendLine($"\t\t[XmlAttribute(AttributeName = \"{property.Name}\")]");
                     else if (property.XmlType == XmlType.Element)
@@ -547,6 +550,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 {
                     var name = item.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("name"));
                     var type = item.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("type"));
+                    bool isNullbale = element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("nillable"))?.Value == "true";
                     if (name == null)
                         continue;
                     else if (type == null)
@@ -563,7 +567,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     {
                         Name = realName,
                         ReturnType = type?.Value,
-                        XmlType = XmlType.Attribute
+                        XmlType = XmlType.Attribute,
+                        IsNullable = isNullbale
                     });
                 }
                 if (!_SoapResult.Classes.Contains(classInfo))
@@ -945,6 +950,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 {
                     var name = element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("name"));
                     var type = element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("type"));
+                    bool isNullbale = element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("nillable"))?.Value == "true";
                     if (name == null)
                         continue;
                     //else if (type == null)
@@ -963,12 +969,14 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     var property = new PropertyInfo() { Name = realName, ReturnType = typeName, XmlType = XmlType.Element };
                     if (element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("maxOccurs"))?.Value != null)
                         property.IsArray = true;
+                    property.IsNullable = isNullbale;
                     classInfo.Properties.Add(property);
                 }
                 foreach (var element in FindElementTree(item, "attribute"))
                 {
                     var name = element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("name"));
                     var type = element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("type"));
+                    bool isNullbale = element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("nillable"))?.Value == "true";
                     if (name == null)
                         continue;
                     else if (type == null)
@@ -984,6 +992,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     var property = new PropertyInfo() { Name = realName, ReturnType = type?.Value.Split(':').LastOrDefault(), XmlType = XmlType.Attribute };
                     if (element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("maxOccurs"))?.Value != null)
                         property.IsArray = true;
+                    property.IsNullable = isNullbale;
                     classInfo.Properties.Add(property);
                 }
                 if (!_SoapResult.Classes.Contains(classInfo))
@@ -1130,75 +1139,6 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             }
             return null;
         }
-        private void GenerateMethods(ClassInfo classInfo, ElementInfo elementInfo)
-        {
-            try
-            {
-                foreach (var item in elementInfo.Children)
-                {
-                    GenerateMethods(classInfo, item);
-                    if (item.Name.LocalName == "element")
-                    {
-                        var parent = FindMethodName(item);
-                        if (parent == null)
-                            continue;
-                        string methodName = parent.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("name")).Value;
-                        if (classInfo.SkipMethods.Contains(methodName))
-                            continue;
-                        string methodReponse = GetMethodResponse(parent, methodName, out ClassInfo returnType);
-
-                        if (!string.IsNullOrEmpty(methodReponse))
-                            classInfo.Methods.Add(new MethodInfo() { ReturnType = methodReponse, Name = methodName, ParameterInfoes = GetMethodParameters(parent), ReturnClassType = returnType });
-                        Console.WriteLine(item.Element.NodeType + " " + item);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-        }
-
-        private string GetMethodResponse(ElementInfo element, string name, out ClassInfo returnType)
-        {
-            returnType = null;
-            if (!(element.Element.NextNode is XElement node))
-                return null;
-            XAttribute attribute = node.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("name"));
-            if (attribute != null && attribute.Value == name + "Response")
-            {
-                string className = name + "Response";
-                //if (BaseClassInfo.SkipMethods.Contains(className))
-                //    return null;
-                //BaseClassInfo.SkipMethods.Add(className);
-                List<XElement> elements = new List<XElement>();
-                FindAllElements(node, "element", elements);
-                if (elements.Count > 1)
-                {
-                    StringBuilder classBuilder = new StringBuilder();
-                    if (GetTypeName(ref className))
-                        return null;
-                    ClassInfo classInfo = new ClassInfo() { Name = className };
-                    foreach (XElement item in elements)
-                    {
-                        classInfo.Properties.Add(new PropertyInfo() { ReturnType = CleanType(item.Attribute("type").Value), Name = item.Attribute("name").Value, XmlType = XmlType.Element });
-                    }
-                    _SoapResult.Classes.Add(classInfo);
-                    returnType = classInfo;
-                    return className;
-                }
-                else if (elements.Count == 1)
-                {
-                    XElement first = elements.First();
-                    return CleanType(first.Attribute("type").Value);
-                }
-                else
-                {
-                    return "void";
-                }
-            }
-            return "void";
-        }
 
         private string CleanType(string value)
         {
@@ -1232,6 +1172,11 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         public bool IsDefaultTypes(string name)
         {
             return DefaultTypes.Values.Contains(name);
+        }
+
+        public bool CanNullable(string name)
+        {
+            return DefaultTypes.Values.Where(x => x != "string" && !x.EndsWith(']')).Contains(name);
         }
 
         public bool GetTypeName(ref string name)
@@ -1404,6 +1349,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         public string Name { get; set; }
         public string ReturnType { get; set; }
         public bool IsArray { get; set; }
+        public bool IsNullable { get; set; }
     }
 
     public class MethodInfo
