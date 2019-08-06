@@ -1176,7 +1176,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         public bool CanNullable(string name)
         {
-            return DefaultTypes.Values.Where(x => x != "string" && !x.EndsWith(']')).Contains(name);
+            return DefaultTypes.Values.Where(x => x != "string" && !x.EndsWith("]")).Contains(name);
         }
 
         public bool GetTypeName(ref string name)
