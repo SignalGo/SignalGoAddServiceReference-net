@@ -173,6 +173,17 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                             XmlType = XmlType.Text
                         });
                     }
+                    foreach (var cName in items)
+                    {
+                        foreach (var item in _SoapResult.Classes.Where(x => x.Name == cName.Split(':').LastOrDefault()))
+                        {
+                            foreach (var p in item.Properties)
+                            {
+                                if (!classInfo.Properties.Any(x => x.Name == p.Name))
+                                    classInfo.Properties.Add(p);
+                            }
+                        }
+                    }
                 }
 
 
@@ -198,7 +209,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
                 string inheritance = "";
                 string inheritanceName = "";
-                if (_SoapResult.ReferenceAttributeGroup.TryGetValue(classInfo.Name, out items))
+                if (_SoapResult.BaseOfClass.TryGetValue(classInfo.Name, out items))
                 {
                     inheritance = ": " + items.First();
                     inheritanceName = items.First();
@@ -211,7 +222,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     if (inheritanceClass != null)
                     {
                         baseClasses.Add(inheritanceClass);
-                        if (_SoapResult.ReferenceAttributeGroup.TryGetValue(inheritanceClass.Name, out items))
+                        if (_SoapResult.BaseOfClass.TryGetValue(inheritanceClass.Name, out items))
                         {
                             inheritanceName = items.First();
                         }
@@ -428,6 +439,10 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 }
                 foreach (var simpleType in FindElementTree(rootElement, "simpleType"))
                 {
+                    if (simpleType.Element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("name"))?.Value == "FlightNumberType")
+                    {
+
+                    }
                     GenerateType(simpleType);
                 }
                 foreach (var messageType in FindElementTree(rootElement, "message"))
@@ -542,7 +557,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     classInfo = new ClassInfo()
                     {
                         Name = className,
-                        TargetNameSpace = element.GetNearNameSpace()
+                        TargetNameSpace = element.GetNearNameSpace(),
+                        IsAttributeGroup = true
                     };
                 }
 
@@ -659,15 +675,19 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                                 var baseName = baseelement.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("base"))?.Value;
                                 if (baseName != null)
                                 {
-                                    if (_SoapResult.ReferenceAttributeGroup.TryGetValue(name, out List<string> bases))
+                                    baseName = baseName.Split(':').LastOrDefault();
+                                    if (!GetTypeName(ref baseName))
                                     {
-                                        if (!bases.Contains(baseName))
-                                            bases.Add(baseName);
-                                    }
-                                    else
-                                    {
-                                        bases = new List<string>() { baseName };
-                                        _SoapResult.ReferenceAttributeGroup.Add(name, bases);
+                                        if (_SoapResult.BaseOfClass.TryGetValue(name, out List<string> bases))
+                                        {
+                                            if (!bases.Contains(baseName))
+                                                bases.Add(baseName);
+                                        }
+                                        else
+                                        {
+                                            bases = new List<string>() { baseName };
+                                            _SoapResult.BaseOfClass.Add(name, bases);
+                                        }
                                     }
                                 }
                             }
@@ -765,6 +785,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 foreach (var item2 in FindElementOnLevel(item, "simpleType"))
                 {
                     var isEnum = IsEnum(item2, out enumName);
+                    if (enumName != null && enumName.Split(':').LastOrDefault() == "string")
+                        return false;
                     if (isEnum)
                         return true;
                 }
@@ -864,12 +886,22 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     var baseName = item.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("memberTypes"))?.Value;
                     if (string.IsNullOrEmpty(baseName))
                     {
-                        var simpleTypes = FindElementOnLevel(element, "simpleType");
+                        var simpleTypes = FindElementOnLevel(element, "simpleType").ToList();
                         foreach (var simpleType in simpleTypes)
                         {
                             baseName = simpleType.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("base"))?.Value;
                             if (!string.IsNullOrEmpty(baseName))
                                 break;
+                        }
+
+                        foreach (var simpleType in FindElementOnLevel(item, "simpleType"))
+                        {
+                            foreach (var restriction in FindElementOnLevel(simpleType, "restriction"))
+                            {
+                                baseName = restriction.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("base"))?.Value;
+                                if (!string.IsNullOrEmpty(baseName))
+                                    yield return baseName;
+                            }
                         }
                     }
                     else
@@ -1315,6 +1347,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
     public class SoapResult
     {
         public Dictionary<string, List<string>> ReferenceAttributeGroup { get; set; } = new Dictionary<string, List<string>>();
+        public Dictionary<string, List<string>> BaseOfClass { get; set; } = new Dictionary<string, List<string>>();
         public Dictionary<string, List<string>> ClassesToSimpleType { get; set; } = new Dictionary<string, List<string>>();
         public Dictionary<string, List<string>> CanClassToBeSimpleType { get; set; } = new Dictionary<string, List<string>>();
         public List<string> UrlGenerated { get; set; } = new List<string>();
@@ -1341,6 +1374,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         public List<string> SkipMethods { get; set; } = new List<string>();
         public bool IsArray { get; set; }
         public string Type { get; set; }
+        public bool IsAttributeGroup { get; set; }
     }
 
     public class PropertyInfo
