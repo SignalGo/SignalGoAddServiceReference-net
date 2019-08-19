@@ -60,7 +60,18 @@ namespace SignalGo.CodeGenerator.Models
                 }
             }
         }
-
+        public void ClearNamesAndTypes(Func<string, string> clearString)
+        {
+            string name = clearString(Name);
+            Name = name;
+            if (Childs != null)
+            {
+                foreach (GenericInfo item in Childs)
+                {
+                    item.ClearNamesAndTypes(clearString);
+                }
+            }
+        }
         public void GetNameSpaces(Dictionary<string, List<string>> keyValuePairs, Func<string, string> clearString)
         {
             int index = Name.LastIndexOf('.');

@@ -336,6 +336,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 { "system.int64","number" },
                 { "system.string","string" },
                 { "long","number" },
+                { "decimal","number" },
                 { "double","number" },
                 { "byte","number" },
                 { "short","number" },
@@ -451,7 +452,9 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 .Replace("System.Collections.Generic.List<", "")
                 .Replace("System.Collections.Generic.ICollection<", "")
                 .Replace("System.Collections.Generic", "SignalGoReference.Models");
-
+            name = name.Replace("?", "");
+            if (fixedReturnTypes.TryGetValue(name, out string text))
+                name = text;
             return name.Trim();
         }
 
@@ -660,6 +663,7 @@ import {{ ServerConnectionService }} from './server-connection.service';
             {
                 GenericInfo generic = GenericInfo.GenerateGeneric(classReferenceInfo.BaseClassName);
                 generic.ClearNameSpaces(ClearString);
+                generic.ClearNamesAndTypes(ClearString);
                 string typeName = generic.ToString();
                 AddToDictionary(nameSpaces, classReferenceInfo.BaseClassName);
 
