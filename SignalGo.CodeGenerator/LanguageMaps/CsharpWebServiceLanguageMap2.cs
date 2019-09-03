@@ -143,6 +143,22 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             //        }
             //    }
             //}
+
+            foreach (var item in _SoapResult.MessagesTypes)
+            {
+                if (item.Value.Count > 1)
+                {
+                    ClassInfo classInfo = new ClassInfo();
+                    classInfo.Name = item.Key + "CustomResult";
+                    foreach (var property in item.Value)
+                    {
+                        string name = property.Split(':').LastOrDefault();
+                        classInfo.Properties.Add(new PropertyInfo() { Name = name, ReturnType = name });
+                    }
+                    classInfo.TargetNameSpace = "SignalGoStuff";
+                    _SoapResult.Classes.Add(classInfo);
+                }
+            }
             foreach (ClassInfo classInfo in _SoapResult.Classes)
             {
                 if (classInfo.IsArray)
@@ -248,8 +264,15 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     string returnType = method.ReturnType;
                     if (returnType == "void")
                         returnType = "object";
-                    if (_SoapResult.MessagesTypes.TryGetValue(returnType, out string newReturnType))
-                        returnType = newReturnType;
+                    if (_SoapResult.MessagesTypes.TryGetValue(returnType, out List<string> newReturnTypes))
+                    {
+                        if (newReturnTypes.Count == 1)
+                            returnType = newReturnTypes.FirstOrDefault();
+                        else
+                        {
+                            returnType += "CustomResult";
+                        }
+                    }
                     returnType = returnType.Split(':').LastOrDefault();
                     GenerateMethod(classInfo, returnType, method);
                     GenerateMethod(classInfo, returnType, method, "Async");
@@ -400,8 +423,15 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 }
                 if (IsDefaultTypes(item.Name))
                     item.Name += "_" + item.Name;
-                if (_SoapResult.MessagesTypes.TryGetValue(typeName, out string myTypeName))
-                    typeName = myTypeName;
+                if (_SoapResult.MessagesTypes.TryGetValue(typeName, out List<string> myTypeNames))
+                {
+                    if (myTypeNames.Count == 1)
+                        typeName = myTypeNames.FirstOrDefault();
+                    else
+                    {
+                        typeName += "CustomResult";
+                    }
+                }
                 typeName = typeName.Split(':').LastOrDefault();
                 result.Add(typeName + " " + item.Name?.Split('.').FirstOrDefault());
             }
@@ -725,24 +755,28 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     if (name == null || typeName == null)
                         continue;
 
-                    if (!_SoapResult.MessagesTypes.ContainsKey(className))
+                    string value = typeName.Value;
+                    foreach (var el in allElements)
                     {
-                        string value = typeName.Value;
-                        foreach (var el in allElements)
+                        var elName = el.Element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("name"));
+                        if (elName?.Value == name?.Value)
                         {
-                            var elName = el.Element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("name"));
-                            if (elName?.Value == name?.Value)
+                            var tEl = el.Element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("type"));
+                            if (tEl != null)
                             {
-                                var tEl = el.Element.Attributes().FirstOrDefault(x => x.Name.LocalName.Equals("type"));
-                                if (tEl != null)
-                                {
-                                    value = tEl?.Value;
-                                    break;
-                                }
+                                value = tEl?.Value;
+                                break;
                             }
                         }
-                        _SoapResult.MessagesTypes[className] = value;
-                        break;
+                    }
+                    if (_SoapResult.MessagesTypes.TryGetValue(className, out List<string> items))
+                    {
+                        items.Add(value);
+                    }
+                    else
+                    {
+                        items = new List<string>() { value };
+                        _SoapResult.MessagesTypes[className] = items;
                     }
                     //if (classInfo.Properties.Any(x => x.Name == name.Value))
                     //    continue;
@@ -1354,7 +1388,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         public List<ClassInfo> Classes { get; set; } = new List<ClassInfo>();
         public List<EnumInfo> Enums { get; set; } = new List<EnumInfo>();
         public Dictionary<string, string> ScheamaElements { get; set; } = new Dictionary<string, string>();
-        public Dictionary<string, string> MessagesTypes { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, List<string>> MessagesTypes { get; set; } = new Dictionary<string, List<string>>();
     }
 
     public class EnumInfo
