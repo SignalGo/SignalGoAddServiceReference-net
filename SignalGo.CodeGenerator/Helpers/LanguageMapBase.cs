@@ -1,6 +1,8 @@
 ﻿using SignalGo.CodeGenerator.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace SignalGo.CodeGenerator.Helpers
 {
@@ -32,7 +34,26 @@ namespace SignalGo.CodeGenerator.Helpers
 
         public abstract List<ProjectItemInfoBase> GetAllProjectItemsWithoutServices(ProjectItemsInfoBase project);
 
-
+        public static string ReplaceNameSpace(string nameSpace, AddReferenceConfigInfo config)
+        {
+            if (config.ReplaceNameSpaces != null)
+            {
+                var find = config.ReplaceNameSpaces.FirstOrDefault(x => x.From == nameSpace);
+                if (find != null)
+                {
+                    return find.To;
+                }
+            }
+            return nameSpace;
+        }
+        public static string[] GetCustomNameSpaces(AddReferenceConfigInfo config)
+        {
+            if (!string.IsNullOrEmpty(config.CustomNameSpaces))
+            {
+                return Regex.Split(config.CustomNameSpaces, "\r\n");
+            }
+            return null;
+        }
     }
 
     public static class StringExtensions

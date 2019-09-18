@@ -165,6 +165,14 @@ namespace SignalGoAddServiceReference
                     content.chkAsyncMethods.IsChecked = config.IsGenerateAsyncMethods;
                     content.rdoIsAutomaticDetection.IsChecked = config.IsAutomaticSyncAndAsyncDetection;
                     content.rdoIsRealMethods.IsChecked = !config.IsAutomaticSyncAndAsyncDetection;
+                    content.customNameSpaces.Text = config.CustomNameSpaces;
+                    if (config.ReplaceNameSpaces != null)
+                    {
+                        foreach (var item in config.ReplaceNameSpaces)
+                        {
+                            content.ReplaceNameSpaces.Add(item);
+                        }
+                    }
                     addServiceWindow.ShowDialog();
                 }
                 else

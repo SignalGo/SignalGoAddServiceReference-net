@@ -6,10 +6,13 @@
     using Microsoft.VisualStudio.Shell.Interop;
     using Newtonsoft.Json;
     using SignalGo.CodeGenerator.Models;
+    using SignalGo.Shared.Models.ServiceReference;
     using SignalGoAddServiceReference.Helpers;
     using SignalGoAddServiceReference.Models;
     using System;
+    using System.Collections.ObjectModel;
     using System.IO;
+    using System.Linq;
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Windows;
@@ -26,6 +29,7 @@
         public AddServiceWindowControl()
         {
             InitializeComponent();
+            lstReplaceNameSpaces.ItemsSource = ReplaceNameSpaces;
         }
 
         /// <summary>
@@ -78,6 +82,8 @@
         }
 
         public Action FinishedAction { get; set; }
+
+        public ObservableCollection<ReplaceNameSpaceInfo> ReplaceNameSpaces { get; set; } = new ObservableCollection<ReplaceNameSpaceInfo>();
         private void btnAddService_Click(object sender, RoutedEventArgs e)
         {
             Dispatcher.VerifyAccess();
@@ -113,7 +119,9 @@
                     ServiceType = cboServiceType.SelectedIndex,
                     IsGenerateAsyncMethods = chkAsyncMethods.IsChecked.Value,
                     IsJustGenerateServices = chkJustServices.IsChecked.Value,
-                    IsAutomaticSyncAndAsyncDetection = rdoIsAutomaticDetection.IsChecked.Value
+                    IsAutomaticSyncAndAsyncDetection = rdoIsAutomaticDetection.IsChecked.Value,
+                    ReplaceNameSpaces = ReplaceNameSpaces.ToList(),
+                    CustomNameSpaces = customNameSpaces.Text
                 };
 
                 string fullFilePath = LanguageMap.Current.DownloadService(servicePath, config);
@@ -133,5 +141,26 @@
             }
         }
 
+        private void BtnRemoveReplaceNameSpaces_Click(object sender, RoutedEventArgs e)
+        {
+            ReplaceNameSpaces.Remove((ReplaceNameSpaceInfo)((Button)sender).DataContext);
+        }
+
+        private void BtnAddNameSpace_Click(object sender, RoutedEventArgs e)
+        {
+            if (ReplaceNameSpaces.Any(x => x.From == fromNameSpace.Text))
+            {
+                MessageBox.Show($"{fromNameSpace.Text} exist", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            else if (string.IsNullOrEmpty(fromNameSpace.Text))
+            {
+                MessageBox.Show($"from value cannot be empty", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            ReplaceNameSpaces.Add(new ReplaceNameSpaceInfo() { From = fromNameSpace.Text, To = toNameSpace.Text });
+            fromNameSpace.Text = "";
+            toNameSpace.Text = "";
+        }
     }
 }

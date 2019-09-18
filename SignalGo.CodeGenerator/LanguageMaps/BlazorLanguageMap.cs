@@ -13,7 +13,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 {
     public static class BlazorLanguageMap
     {
-        public static string CalculateMapData(NamespaceReferenceInfo namespaceReferenceInfo, string serviceName)
+        public static string CalculateMapData(NamespaceReferenceInfo namespaceReferenceInfo, string serviceName, AddReferenceConfigInfo config)
         {
             var project = LanguageMapBase.GetCurrent.GetActiveProject();
             List<MapDataClassInfo> MapDataClassInfoes = new List<MapDataClassInfo>();
@@ -226,7 +226,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             //}
             builderResult.AppendLine("}");
             builderResult.AppendLine("");
-            
+
 
 
             builderResult.AppendLine("namespace " + namespaceReferenceInfo.Name + ".HttpServices");
@@ -321,7 +321,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 builderResult.AppendLine("{");
                 foreach (ClassReferenceInfo modelInfo in groupInfo)
                 {
-                    CsharpLanguageMap.GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault());
+                    CsharpLanguageMap.GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault(), config);
                 }
                 builderResult.AppendLine("}");
                 builderResult.AppendLine("");

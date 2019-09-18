@@ -85,7 +85,7 @@ namespace SignalGoAddServiceReference.Helpers
                     else if (config.LanguageType == 2)
                     {
                         fullFilePath = Path.Combine(servicePath, "Reference.cs");
-                        File.WriteAllText(fullFilePath, BlazorLanguageMap.CalculateMapData(namespaceReferenceInfo, config.ServiceNameSpace), Encoding.UTF8);
+                        File.WriteAllText(fullFilePath, BlazorLanguageMap.CalculateMapData(namespaceReferenceInfo, config.ServiceNameSpace, config), Encoding.UTF8);
                     }
                     //java android
                     else if (config.LanguageType == 3)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SignalGo.Shared.Models.ServiceReference;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,5 +16,8 @@ namespace SignalGo.CodeGenerator.Models
         public bool IsJustGenerateServices { get; set; }
         public bool IsGenerateAsyncMethods { get; set; } = true;
         public bool IsAutomaticSyncAndAsyncDetection { get; set; } = true;
+
+        public string CustomNameSpaces { get; set; }
+        public List<ReplaceNameSpaceInfo> ReplaceNameSpaces { get; set; }
     }
 }

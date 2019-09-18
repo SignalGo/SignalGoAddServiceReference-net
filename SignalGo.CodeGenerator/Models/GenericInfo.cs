@@ -60,6 +60,25 @@ namespace SignalGo.CodeGenerator.Models
                 }
             }
         }
+
+        public void ReplaceNameSpaces(Func<string, AddReferenceConfigInfo, string> clearNameSapceString, AddReferenceConfigInfo configInfo)
+        {
+            if (Name.Contains("."))
+            {
+                int index = Name.LastIndexOf('.');
+                var nameSpace = Name.Substring(0, index);
+                string name = Name.Substring(index + 1);
+                Name = clearNameSapceString(nameSpace, configInfo) + "." + name;
+            }
+
+            if (Childs != null)
+            {
+                foreach (GenericInfo item in Childs)
+                {
+                    item.ReplaceNameSpaces(clearNameSapceString, configInfo);
+                }
+            }
+        }
         public void ClearNamesAndTypes(Func<string, string> clearString)
         {
             string name = clearString(Name);
