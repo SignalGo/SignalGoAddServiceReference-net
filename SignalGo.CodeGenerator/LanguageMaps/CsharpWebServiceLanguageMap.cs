@@ -18,6 +18,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             //{ "ArrayOfLong","long[]"},
             //{ "base64Binary","byte[]"},
             { "boolean","bool"},
+            { "long","long"},
             { "dateTime","DateTime"},
             { "date","DateTime"},
             { "nonNegativeInteger","uint"},
