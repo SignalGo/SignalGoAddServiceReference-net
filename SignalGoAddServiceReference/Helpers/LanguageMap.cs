@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Newtonsoft.Json;
 using SignalGo.CodeGenerator.Helpers;
 using SignalGo.CodeGenerator.LanguageMaps;
-using SignalGo.CodeGenerator.LanguageMaps.CsharpWebService;
 using SignalGo.CodeGenerator.Models;
 using SignalGo.Shared.Models.ServiceReference;
 using SignalGoAddServiceReference.Models;
