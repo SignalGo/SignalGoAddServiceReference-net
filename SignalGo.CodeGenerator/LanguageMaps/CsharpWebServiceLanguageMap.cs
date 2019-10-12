@@ -261,6 +261,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 {
                     stringBuilder.AppendLine("\tpublic LoggerAction BeforeCallAction { get; set; }");
                     stringBuilder.AppendLine("\tpublic LoggerAction AfterCallAction { get; set; }");
+                    stringBuilder.AppendLine("\tpublic WebServiceProtocolSettings Settings { get; set; } = new WebServiceProtocolSettings();");
                 }
                 //if (!string.IsNullOrEmpty(classInfo.TargetNameSpace))
                 //{
@@ -408,7 +409,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 stringBuilder.AppendLine("\t\t{");
                 foreach (ParameterInfo parameter in method.ParameterInfoes)
                 {
-                    stringBuilder.AppendLine($"\t\t new SignalGo.Shared.Models.ParameterInfo(){{ Name = \"{parameter.Name}\",Value = WebServiceProtocolHelper.Serialize({parameter.Name},TargetNameSpace) }},");
+                    stringBuilder.AppendLine($"\t\t new SignalGo.Shared.Models.ParameterInfo(){{ Name = \"{parameter.Name}\",Value = WebServiceProtocolHelper.Serialize(this,{parameter.Name},TargetNameSpace) }},");
                 }
                 stringBuilder.AppendLine("\t\t});");
                 stringBuilder.AppendLine("\t\t}");
@@ -1173,11 +1174,11 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     }
                     returnType = returnType.Split(':').LastOrDefault();
                     var returnClass = _SoapResult.Classes.FirstOrDefault(x => x.Name == returnType);
-                    if (returnClass != null && returnClass.Properties.Count == 1)
-                    {
-                        returnType = returnClass.Properties.First().ReturnType;
-                        //name = name + "." + returnClass.Properties.First().Name;
-                    }
+                    //if (returnClass != null && returnClass.Properties.Count == 1)
+                    //{
+                    //    returnType = returnClass.Properties.First().ReturnType;
+                    //    //name = name + "." + returnClass.Properties.First().Name;
+                    //}
                     GetTypeName(ref returnType);
                     string soapAction = "";
                     foreach (var operation in FindElementTree(bindingElement, "operation"))
