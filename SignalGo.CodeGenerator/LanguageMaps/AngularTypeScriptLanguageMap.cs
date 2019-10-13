@@ -280,7 +280,11 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             if (returnTypeName == "SignalGo.Shared.Http.ActionResult")
                 return;
             builder.AppendLine($"{prefix}{methodInfo.DuplicateName}({GenerateMethodParameters(methodInfo, baseServiceName, nameSpaces)}): Promise<{returnTypeName}> {{");
-            builder.Append($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
+            if (methodInfo.ProtocolType == ProtocolType.HttpGet)
+                builder.Append($@"return this.server.get<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
+            else
+                builder.Append($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
+
             int index = 0;
             if (methodInfo.Parameters.Count == 0)
                 builder.AppendLine("null");
