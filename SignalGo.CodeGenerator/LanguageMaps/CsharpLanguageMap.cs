@@ -625,7 +625,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     builder.AppendLine($"{prefix + prefix}if (Status == System.Net.HttpStatusCode.InternalServerError)");
                     builder.AppendLine($"{prefix + prefix + prefix}throw new Exception(result.Data);");
                     if (methodInfo.ReturnTypeName != "void")
-                        builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientSerializationHelper.DeserializeObject<{ReplaceNameSpace(methodInfo.ReturnTypeName, config)}>(result.Data);");
+                        builder.AppendLine($"{prefix + prefix}return _httpClient.Deserialize<{ReplaceNameSpace(methodInfo.ReturnTypeName, config)}>(result.Data);");
                 }
                 else
                     builder.AppendLine($"{prefix + prefix}return result.GetStream<{ReplaceNameSpace(methodInfo.ReturnTypeName, config)}>();");
@@ -665,7 +665,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     builder.AppendLine($"{prefix + prefix}if (Status == System.Net.HttpStatusCode.InternalServerError)");
                     builder.AppendLine($"{prefix + prefix + prefix}throw new Exception(result.Data);");
                     if (methodInfo.ReturnTypeName != "void")
-                        builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientSerializationHelper.DeserializeObject<{ReplaceNameSpace(methodInfo.ReturnTypeName, config)}>(result.Data);");
+                        builder.AppendLine($"{prefix + prefix}return _httpClient.Deserialize<{ReplaceNameSpace(methodInfo.ReturnTypeName, config)}>(result.Data);");
                 }
                 else
                     builder.AppendLine($"{prefix + prefix}return result.GetStream<{ReplaceNameSpace(methodInfo.ReturnTypeName, config)}>();");
@@ -751,7 +751,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         {
             builder.AppendLine(prefix + "public partial class " + classReferenceInfo.Name + $" : I{classReferenceInfo.Name}");
             builder.AppendLine(prefix + "{");
-            builder.AppendLine("        public " + classReferenceInfo.Name + @"(string serverUrl, SignalGo.Client.HttpClient httpClient = null)
+            builder.AppendLine("        public " + classReferenceInfo.Name + @"(string serverUrl, SignalGo.Client.IHttpClient httpClient = null)
         {
             _serverUrl = serverUrl;
             _httpClient = httpClient;
@@ -760,7 +760,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         }
 
         private readonly string _serverUrl = null;
-        private SignalGo.Client.HttpClient _httpClient;
+        private SignalGo.Client.IHttpClient _httpClient;
         public SignalGo.Shared.Http.WebHeaderCollection RequestHeaders
         {
             get
