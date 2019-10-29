@@ -17,11 +17,14 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             ProjectInfoBase project = LanguageMapBase.GetCurrent.GetActiveProject();
             List<MapDataClassInfo> MapDataClassInfoes = new List<MapDataClassInfo>();
             List<string> usingsOfClass = new List<string>();
+            List<string> attributesForAll = new List<string>();
             foreach (ProjectItemInfoBase projectItem in LanguageMapBase.GetCurrent.GetAllProjectItemsWithoutServices(project.ProjectItemsInfoBase))
             {
                 if (projectItem.GetFileCount() == 0)
                     continue;
                 string fileName = projectItem.GetFileName(0);
+                bool forAllClasses = false;
+                List<string> attributes = new List<string>();
                 if (Path.GetExtension(fileName).ToLower() == ".cs")
                 {
                     string dir = Path.GetDirectoryName(fileName);
@@ -50,7 +53,15 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                                     usingsOfClass.AddRange(uses);
                                     usingsOfClass = usingsOfClass.Distinct().ToList();
                                 }
-
+                                if (line.TrimStart().StartsWith("["))
+                                {
+                                    if (!line.Contains("ModelMapp"))
+                                        attributes.Add(line);
+                                    else if (line.Contains("ForAllClassess"))
+                                    {
+                                        forAllClasses = true;
+                                    }
+                                }
                                 if (findStartBlock && (line.Contains("{") || line.Contains("}")))
                                 {
                                     int countPlus = line.Count(x => x == '{') - line.Count(x => x == '}');
@@ -159,6 +170,9 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                         }
                     }
                 }
+
+                if (forAllClasses)
+                    attributesForAll.AddRange(attributes);
             }
 
 
@@ -267,7 +281,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     builderResult.AppendLine("{");
                     foreach (ClassReferenceInfo modelInfo in groupInfo)
                     {
-                        GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name && (x.Usings.Contains(modelInfo.NameSpace) || x.ServiceName == modelInfo.NameSpace)).FirstOrDefault(), config);
+                        GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name && (x.Usings.Contains(modelInfo.NameSpace) || x.ServiceName == modelInfo.NameSpace)).FirstOrDefault(), config, attributesForAll);
                     }
                     builderResult.AppendLine("}");
                     builderResult.AppendLine("");
@@ -794,11 +808,15 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             builder.AppendLine();
         }
 
-        public static void GenerateModelClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, MapDataClassInfo mapDataClassInfo, AddReferenceConfigInfo config)
+        public static void GenerateModelClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, MapDataClassInfo mapDataClassInfo, AddReferenceConfigInfo config, List<string> attributes)
         {
             string baseName = "";
             if (!string.IsNullOrEmpty(classReferenceInfo.BaseClassName))
                 baseName = " : " + classReferenceInfo.BaseClassName;
+            foreach (var item in attributes)
+            {
+                builder.AppendLine(item);
+            }
             builder.AppendLine(prefix + "public partial class " + classReferenceInfo.Name + baseName);
             builder.AppendLine(prefix + "{");
             foreach (PropertyReferenceInfo propertyInfo in classReferenceInfo.Properties)

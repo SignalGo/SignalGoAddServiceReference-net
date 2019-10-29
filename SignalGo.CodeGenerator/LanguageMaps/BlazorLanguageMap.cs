@@ -321,7 +321,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 builderResult.AppendLine("{");
                 foreach (ClassReferenceInfo modelInfo in groupInfo)
                 {
-                    CsharpLanguageMap.GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault(), config);
+                    CsharpLanguageMap.GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault(), config, new List<string>());
                 }
                 builderResult.AppendLine("}");
                 builderResult.AppendLine("");
