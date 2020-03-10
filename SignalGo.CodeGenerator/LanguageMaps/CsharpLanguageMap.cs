@@ -187,7 +187,14 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             var customNameSpaces = LanguageMapBase.GetCustomNameSpaces(config);
             if (customNameSpaces != null)
                 namespaceReferenceInfo.Usings.AddRange(customNameSpaces);
-
+            foreach (var item in namespaceReferenceInfo.Classes.ToArray())
+            {
+                item.NameSpace = LanguageMapBase.ReplaceNameSpace(item.NameSpace, config);
+            }
+            foreach (var item in namespaceReferenceInfo.Enums.ToArray())
+            {
+                item.NameSpace = LanguageMapBase.ReplaceNameSpace(item.NameSpace, config);
+            }
             foreach (var item in namespaceReferenceInfo.Usings.ToArray())
             {
                 var newItem = LanguageMapBase.ReplaceNameSpace(item, config);
