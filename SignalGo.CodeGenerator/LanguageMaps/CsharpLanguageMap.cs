@@ -217,17 +217,17 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             List<string> interfaces = new List<string>();
             foreach (ClassReferenceInfo item in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ServiceLevel || x.Type == ClassReferenceType.StreamLevel))
             {
-                if (interfaces.Contains(item.Name))
+                if (interfaces.Contains(item.NormalizedName))
                     continue;
-                interfaces.Add(item.Name);
-                GenerateServiceInterface(item, "    ", builderResult, config.IsGenerateAsyncMethods, GetServiceType(item.Type, item.Name), config.IsAutomaticSyncAndAsyncDetection, config, false);
+                interfaces.Add(item.NormalizedName);
+                GenerateServiceInterface(item, "    ", builderResult, config.IsGenerateAsyncMethods, GetServiceType(item.Type, item.NormalizedName), config.IsAutomaticSyncAndAsyncDetection, config, false);
             }
             foreach (ClassReferenceInfo item in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.HttpServiceLevel || x.Type == ClassReferenceType.OneWayLevel))
             {
-                if (interfaces.Contains(item.Name))
+                if (interfaces.Contains(item.NormalizedName))
                     continue;
-                interfaces.Add(item.Name);
-                GenerateServiceInterface(item, "    ", builderResult, config.IsGenerateAsyncMethods, GetServiceType(item.Type, item.Name), config.IsAutomaticSyncAndAsyncDetection, config, false);
+                interfaces.Add(item.NormalizedName);
+                GenerateServiceInterface(item, "    ", builderResult, config.IsGenerateAsyncMethods, GetServiceType(item.Type, item.NormalizedName), config.IsAutomaticSyncAndAsyncDetection, config, false);
             }
             builderResult.AppendLine("}");
             builderResult.AppendLine("");
@@ -289,7 +289,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     builderResult.AppendLine("{");
                     foreach (ClassReferenceInfo modelInfo in groupInfo)
                     {
-                        GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name && (x.Usings.Contains(modelInfo.NameSpace) || x.ServiceName == modelInfo.NameSpace)).FirstOrDefault(), config, attributesForAll);
+                        GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.NormalizedName && (x.Usings.Contains(modelInfo.NameSpace) || x.ServiceName == modelInfo.NameSpace)).FirstOrDefault(), config, attributesForAll);
                     }
                     builderResult.AppendLine("}");
                     builderResult.AppendLine("");
@@ -328,13 +328,13 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         {
             string serviceAttribute = $@"[ServiceContract(""{classReferenceInfo.ServiceName}"",{serviceType}, InstanceType.SingleInstance)]";
             builder.AppendLine(prefix + serviceAttribute);
-            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.Name + $" : I{classReferenceInfo.Name}");
+            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.NormalizedName + $" : I{classReferenceInfo.NormalizedName}");
             builder.AppendLine(prefix + "{");
-            builder.AppendLine(prefix + prefix + "public static " + classReferenceInfo.Name + " Current { get; set; }");
+            builder.AppendLine(prefix + prefix + "public static " + classReferenceInfo.NormalizedName + " Current { get; set; }");
 
             builder.AppendLine(prefix + prefix + "string _signalGoServerAddress = \"\";");
             builder.AppendLine(prefix + prefix + "int _signalGoPortNumber = 0;");
-            builder.AppendLine(prefix + prefix + "public " + classReferenceInfo.Name + "(string signalGoServerAddress, int signalGoPortNumber)");
+            builder.AppendLine(prefix + prefix + "public " + classReferenceInfo.NormalizedName + "(string signalGoServerAddress, int signalGoPortNumber)");
             builder.AppendLine(prefix + prefix + "{");
             builder.AppendLine(prefix + prefix + prefix + "_signalGoServerAddress = signalGoServerAddress;");
             builder.AppendLine(prefix + prefix + prefix + "_signalGoPortNumber = signalGoPortNumber;");
@@ -383,13 +383,13 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             builder.AppendLine(serviceAttribute);
             string interfacePrefix;
             if (classReferenceInfo.Type == ClassReferenceType.CallbackLevel)
-                interfacePrefix = classReferenceInfo.Name.StartsWith("i", StringComparison.OrdinalIgnoreCase) ? "" : "I";
+                interfacePrefix = classReferenceInfo.NormalizedName.StartsWith("i", StringComparison.OrdinalIgnoreCase) ? "" : "I";
             else
-                interfacePrefix = classReferenceInfo.Name.Length > 1 && classReferenceInfo.Name[1] == 'I' ? "" : "I";
+                interfacePrefix = classReferenceInfo.NormalizedName.Length > 1 && classReferenceInfo.NormalizedName[1] == 'I' ? "" : "I";
             if (justAsync)
-                builder.AppendLine(prefix + $"public partial interface {interfacePrefix}{classReferenceInfo.Name}Async");
+                builder.AppendLine(prefix + $"public partial interface {interfacePrefix}{classReferenceInfo.NormalizedName}Async");
             else
-                builder.AppendLine(prefix + $"public partial interface {interfacePrefix}{classReferenceInfo.Name}");
+                builder.AppendLine(prefix + $"public partial interface {interfacePrefix}{classReferenceInfo.NormalizedName}");
             builder.AppendLine(prefix + "{");
             foreach (MethodReferenceInfo methodInfo in classReferenceInfo.Methods)
             {
@@ -419,20 +419,20 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         {
             string serviceAttribute = $@"[ServiceContract(""{classReferenceInfo.ServiceName}"",{serviceType}, InstanceType.SingleInstance)]";
             builder.AppendLine(prefix + serviceAttribute);
-            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.Name + $" : I{classReferenceInfo.Name}");
+            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.NormalizedName + $" : I{classReferenceInfo.NormalizedName}");
             builder.AppendLine(prefix + "{");
             builder.AppendLine($@"        public string ServerAddress {{ get; set; }}
         public int? Port {{ get; set; }}
         private string ServiceName {{ get; set; }}
 
         private SignalGo.Client.ClientProvider CurrentProvider {{ get; set; }}
-        public {classReferenceInfo.Name}(SignalGo.Client.ClientProvider clientProvider = null)
+        public {classReferenceInfo.NormalizedName}(SignalGo.Client.ClientProvider clientProvider = null)
         {{
             CurrentProvider = clientProvider;
             ServiceName = GetType().GetServerServiceName(true);
         }}
 
-        public {classReferenceInfo.Name}(string serverAddress = null, int? port = null, SignalGo.Client.ClientProvider clientProvider = null)
+        public {classReferenceInfo.NormalizedName}(string serverAddress = null, int? port = null, SignalGo.Client.ClientProvider clientProvider = null)
         {{
             ServerAddress = serverAddress;
             Port = port;
@@ -464,11 +464,11 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         {
             string serviceAttribute = $@"[ServiceContract(""{classReferenceInfo.ServiceName}"",{serviceType}, InstanceType.SingleInstance)]";
             builder.AppendLine(prefix + serviceAttribute);
-            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.Name + $" : I{classReferenceInfo.Name}");
+            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.NormalizedName + $" : I{classReferenceInfo.NormalizedName}");
             builder.AppendLine(prefix + "{");
             builder.AppendLine($@"        private SignalGo.Client.ClientProvider CurrentProvider {{ get; set; }}
         string ServiceName {{ get; set; }}
-        public {classReferenceInfo.Name}(SignalGo.Client.ClientProvider clientProvider)
+        public {classReferenceInfo.NormalizedName}(SignalGo.Client.ClientProvider clientProvider)
         {{
             CurrentProvider = clientProvider;
             ServiceName = this.GetType().GetServerServiceName(true);
@@ -771,9 +771,9 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private static void GenerateHttpServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, bool generateAyncMethods, StringBuilder builder, bool isAutoDetection, AddReferenceConfigInfo config)
         {
-            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.Name + $" : I{classReferenceInfo.Name}");
+            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.NormalizedName + $" : I{classReferenceInfo.NormalizedName}");
             builder.AppendLine(prefix + "{");
-            builder.AppendLine("        public " + classReferenceInfo.Name + @"(string serverUrl, SignalGo.Client.IHttpClient httpClient = null)
+            builder.AppendLine("        public " + classReferenceInfo.NormalizedName + @"(string serverUrl, SignalGo.Client.IHttpClient httpClient = null)
         {
             _serverUrl = serverUrl;
             _httpClient = httpClient;
@@ -797,7 +797,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         public SignalGo.Shared.Http.WebHeaderCollection ResponseHeaders { get; set; }
         public System.Net.HttpStatusCode Status { get; set; }
-        public static " + classReferenceInfo.Name + " Current { get; set; }");
+        public static " + classReferenceInfo.NormalizedName + " Current { get; set; }");
             foreach (MethodReferenceInfo methodInfo in classReferenceInfo.Methods)
             {
                 if (isAutoDetection)
@@ -839,7 +839,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             {
                 builder.AppendLine(item);
             }
-            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.Name + baseName);
+            builder.AppendLine(prefix + "public partial class " + classReferenceInfo.NormalizedName + baseName);
             builder.AppendLine(prefix + "{");
             foreach (PropertyReferenceInfo propertyInfo in classReferenceInfo.Properties)
             {

@@ -25,5 +25,15 @@ namespace SignalGo.Shared.Models.ServiceReference
         public string BaseClassName { get; set; }
         public List<MethodReferenceInfo> Methods { get; set; } = new List<MethodReferenceInfo>();
         public List<PropertyReferenceInfo> Properties { get; set; } = new List<PropertyReferenceInfo>();
+
+        public string NormalizedName
+        {
+            get
+            {
+                if (Name.Contains("`"))
+                    return Name.Substring(0, Name.IndexOf('`'));
+                return Name;
+            }
+        }
     }
 }

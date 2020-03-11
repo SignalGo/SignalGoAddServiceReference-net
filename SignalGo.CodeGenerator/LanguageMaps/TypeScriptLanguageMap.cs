@@ -210,7 +210,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 builderResult.AppendLine("export namespace " + groupInfo.Key + " {");
                 foreach (ClassReferenceInfo modelInfo in groupInfo)
                 {
-                    GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault(), serviceName);
+                    GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.NormalizedName).FirstOrDefault(), serviceName);
                 }
                 builderResult.AppendLine("}");
                 builderResult.AppendLine("");
@@ -560,7 +560,7 @@ import {{ {baseServiceName} }} from './Reference';
 
         private void GenerateModelClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, MapDataClassInfo mapDataClassInfo, string baseServiceName)
         {
-            string mainName = classReferenceInfo.Name;
+            string mainName = classReferenceInfo.NormalizedName;
             if (mainName.Contains("<"))
                 mainName = mainName.Substring(0, mainName.IndexOf('<'));
 
@@ -570,10 +570,10 @@ import {{ {baseServiceName} }} from './Reference';
             //    index++;
             //    name = mainName + index;
             //}
-            if (classReferenceInfo.Name.Contains("<"))
+            if (classReferenceInfo.NormalizedName.Contains("<"))
             {
-                int indexName = classReferenceInfo.Name.Count(x => x == '>' || x == '<' || x == ',');
-                mainName = name + indexName + classReferenceInfo.Name.Substring(classReferenceInfo.Name.IndexOf('<'));
+                int indexName = classReferenceInfo.NormalizedName.Count(x => x == '>' || x == '<' || x == ',');
+                mainName = name + indexName + classReferenceInfo.NormalizedName.Substring(classReferenceInfo.NormalizedName.IndexOf('<'));
                 if (GeneratedModels.Contains(classReferenceInfo.NameSpace + "." + mainName))
                     return;
                 GeneratedModels.Add(classReferenceInfo.NameSpace + "." + mainName);
@@ -591,7 +591,7 @@ import {{ {baseServiceName} }} from './Reference';
             string baseName = "";
             if (!string.IsNullOrEmpty(classReferenceInfo.BaseClassName) && !classReferenceInfo.BaseClassName.StartsWith("SignalGo."))
                 baseName = " extends " + classReferenceInfo.BaseClassName;
-            builder.AppendLine(prefix + "export class " + classReferenceInfo.Name + baseName + "{");
+            builder.AppendLine(prefix + "export class " + classReferenceInfo.NormalizedName + baseName + "{");
             foreach (PropertyReferenceInfo propertyInfo in classReferenceInfo.Properties)
             {
                 if (mapDataClassInfo != null && mapDataClassInfo.IgnoreProperties.Contains(propertyInfo.Name))

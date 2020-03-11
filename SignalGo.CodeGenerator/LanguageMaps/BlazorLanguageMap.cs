@@ -321,7 +321,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 builderResult.AppendLine("{");
                 foreach (ClassReferenceInfo modelInfo in groupInfo)
                 {
-                    CsharpLanguageMap.GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.Name).FirstOrDefault(), config, new List<string>());
+                    CsharpLanguageMap.GenerateModelClass(modelInfo, "    ", builderResult, MapDataClassInfoes.Where(x => x.Name == modelInfo.NormalizedName).FirstOrDefault(), config, new List<string>());
                 }
                 builderResult.AppendLine("}");
                 builderResult.AppendLine("");
@@ -393,9 +393,9 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private static void GenerateHttpServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder)
         {
-            builder.AppendLine(prefix + "public class " + classReferenceInfo.Name);
+            builder.AppendLine(prefix + "public class " + classReferenceInfo.NormalizedName);
             builder.AppendLine(prefix + "{");
-            builder.AppendLine("        public " + classReferenceInfo.Name + $@"(string serverUrl, SignalGoBlazorHttpClient httpClient = null)
+            builder.AppendLine("        public " + classReferenceInfo.NormalizedName + $@"(string serverUrl, SignalGoBlazorHttpClient httpClient = null)
         {{
             _serverUrl = serverUrl;
             _httpClient = httpClient;
@@ -405,7 +405,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private readonly string _serverUrl = null;
         private SignalGoBlazorHttpClient _httpClient;
-        public static {classReferenceInfo.Name} Current {{ get; set; }}
+        public static {classReferenceInfo.NormalizedName} Current {{ get; set; }}
         public HttpResponseHeaders ResponseHeaders {{ get; set; }}
         public System.Net.HttpStatusCode Status {{ get; set; }}");
             foreach (MethodReferenceInfo methodInfo in classReferenceInfo.Methods)
