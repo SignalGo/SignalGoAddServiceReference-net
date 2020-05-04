@@ -220,14 +220,18 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 if (interfaces.Contains(item.NormalizedName))
                     continue;
                 interfaces.Add(item.NormalizedName);
-                GenerateServiceInterface(item, "    ", builderResult, config.IsGenerateAsyncMethods, GetServiceType(item.Type, item.NormalizedName), config.IsAutomaticSyncAndAsyncDetection, config, false);
+                GenerateServiceInterface(item, "    ", builderResult, config.IsGenerateAsyncMethods, GetServiceType(item.Type, item.NormalizedName), config.IsAutomaticSyncAndAsyncDetection, config, false, false);
+                GenerateServiceInterface(item, "    ", builderResult, config.IsGenerateAsyncMethods, GetServiceType(item.Type, item.NormalizedName), config.IsAutomaticSyncAndAsyncDetection, config, false, true);
+                GenerateServiceInterface(item, "    ", builderResult, config.IsGenerateAsyncMethods, GetServiceType(item.Type, item.NormalizedName), config.IsAutomaticSyncAndAsyncDetection, config, false, null);
             }
             foreach (ClassReferenceInfo item in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.HttpServiceLevel || x.Type == ClassReferenceType.OneWayLevel))
             {
                 if (interfaces.Contains(item.NormalizedName))
                     continue;
                 interfaces.Add(item.NormalizedName);
-                GenerateServiceInterface(item, "    ", builderResult, config.IsGenerateAsyncMethods, GetServiceType(item.Type, item.NormalizedName), config.IsAutomaticSyncAndAsyncDetection, config, false);
+                GenerateServiceInterface(item, "    ", builderResult, config.IsGenerateAsyncMethods, GetServiceType(item.Type, item.NormalizedName), config.IsAutomaticSyncAndAsyncDetection, config, false, false);
+                GenerateServiceInterface(item, "    ", builderResult, config.IsGenerateAsyncMethods, GetServiceType(item.Type, item.NormalizedName), config.IsAutomaticSyncAndAsyncDetection, config, false, true);
+                GenerateServiceInterface(item, "    ", builderResult, config.IsGenerateAsyncMethods, GetServiceType(item.Type, item.NormalizedName), config.IsAutomaticSyncAndAsyncDetection, config, false, null);
             }
             builderResult.AppendLine("}");
             builderResult.AppendLine("");
@@ -275,8 +279,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             builderResult.AppendLine("{");
             foreach (ClassReferenceInfo callbackInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.CallbackLevel))
             {
-                GenerateServiceInterface(callbackInfo, "    ", builderResult, false, "ServiceType.ClientService", config.IsAutomaticSyncAndAsyncDetection, config, false);
-                GenerateServiceInterface(callbackInfo, "    ", builderResult, false, "ServiceType.ClientService", config.IsAutomaticSyncAndAsyncDetection, config, true);
+                GenerateServiceInterface(callbackInfo, "    ", builderResult, false, "ServiceType.ClientService", config.IsAutomaticSyncAndAsyncDetection, config, false, null);
+                GenerateServiceInterface(callbackInfo, "    ", builderResult, false, "ServiceType.ClientService", config.IsAutomaticSyncAndAsyncDetection, config, true, null);
             }
             builderResult.AppendLine("}");
             builderResult.AppendLine("");
@@ -377,10 +381,16 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         //    builder.AppendLine(prefix + "}");
         //}
 
-        private static void GenerateServiceInterface(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, bool generateAyncMethods, string serviceType, bool isAutoDetection, AddReferenceConfigInfo config, bool justAsync)
+        private static void GenerateServiceInterface(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, bool generateAyncMethods, string serviceType, bool isAutoDetection, AddReferenceConfigInfo config, bool justAsync, bool? autoDetectionAsyncClass)
         {
-            string serviceAttribute = $@"{prefix}[ServiceContract(""{classReferenceInfo.ServiceName}"", {serviceType}, InstanceType.SingleInstance)]";
+            if (justAsync && autoDetectionAsyncClass.HasValue)
+                return;
+            if (autoDetectionAsyncClass == null)
+            {
+                 string serviceAttribute = $@"{prefix}[ServiceContract(""{classReferenceInfo.ServiceName}"", {serviceType}, InstanceType.SingleInstance)]";
             builder.AppendLine(serviceAttribute);
+            }
+           
             string interfacePrefix;
             if (classReferenceInfo.Type == ClassReferenceType.CallbackLevel)
                 interfacePrefix = classReferenceInfo.NormalizedName.StartsWith("i", StringComparison.OrdinalIgnoreCase) ? "" : "I";
@@ -389,7 +399,19 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             if (justAsync)
                 builder.AppendLine(prefix + $"public partial interface {interfacePrefix}{classReferenceInfo.NormalizedName}Async");
             else
-                builder.AppendLine(prefix + $"public partial interface {interfacePrefix}{classReferenceInfo.NormalizedName}");
+            {
+                if (autoDetectionAsyncClass.HasValue)
+                {
+                    if (autoDetectionAsyncClass.Value)
+                        builder.AppendLine(prefix + $"public partial interface {interfacePrefix}{classReferenceInfo.NormalizedName}Async");
+                    else
+                        builder.AppendLine(prefix + $"public partial interface {interfacePrefix}{classReferenceInfo.NormalizedName}Sync");
+                }
+                else
+                {
+                    builder.AppendLine(prefix + $"public partial interface {interfacePrefix}{classReferenceInfo.NormalizedName}: {interfacePrefix}{classReferenceInfo.NormalizedName}Async, {interfacePrefix}{classReferenceInfo.NormalizedName}Sync");
+                }
+            }
             builder.AppendLine(prefix + "{");
             foreach (MethodReferenceInfo methodInfo in classReferenceInfo.Methods)
             {
@@ -399,9 +421,19 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 }
                 else if (isAutoDetection)
                 {
-                    GenerateInterfaceMethod(methodInfo, prefix + prefix, builder, isAutoDetection, config);
-                    if (generateAyncMethods)
-                        GenerateInterfaceMethodAsync(methodInfo, prefix + prefix, builder, isAutoDetection, config);
+                    if (autoDetectionAsyncClass.HasValue)
+                    {
+                        if (autoDetectionAsyncClass.Value && generateAyncMethods)
+                            GenerateInterfaceMethodAsync(methodInfo, prefix + prefix, builder, isAutoDetection, config);
+                        else
+                            GenerateInterfaceMethod(methodInfo, prefix + prefix, builder, isAutoDetection, config);
+                    }
+                    else if (serviceType == "ServiceType.ClientService")
+                    {
+                        GenerateInterfaceMethod(methodInfo, prefix + prefix, builder, isAutoDetection, config);
+                        if (generateAyncMethods)
+                            GenerateInterfaceMethodAsync(methodInfo, prefix + prefix, builder, isAutoDetection, config);
+                    }
                 }
                 else
                 {
