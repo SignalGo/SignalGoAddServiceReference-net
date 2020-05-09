@@ -104,6 +104,12 @@ namespace SignalGoAddServiceReference.Helpers
                         DartFlutterLanguageMap dartFlutterLanguageMap = new DartFlutterLanguageMap();
                         dartFlutterLanguageMap.CalculateMapData(servicePath, namespaceReferenceInfo, config.ServiceNameSpace);
                     }
+                    //Postman
+                    else if (config.LanguageType == 6)
+                    {
+                        fullFilePath = Path.Combine(servicePath, $"{namespaceReferenceInfo.Name}.postman_collection.json");
+                        File.WriteAllText(fullFilePath, PostmanLanguageMap.CalculateMapData(namespaceReferenceInfo, config), Encoding.UTF8);
+                    }
                 }
             }
             else

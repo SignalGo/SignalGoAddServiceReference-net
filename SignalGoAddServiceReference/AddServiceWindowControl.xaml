@@ -39,7 +39,8 @@ The code will be created into the &quot;Connected Services/MyAppServices&quot; f
 				<ComboBoxItem Content="C# Blazor" Background="White"/>
 				<ComboBoxItem Content="Java Android" Background="White"/>
 				<ComboBoxItem Content="Swift" Background="White"/>
-				<ComboBoxItem Content="Dart/Flutter" Background="White"/>
+                <ComboBoxItem Content="Dart/Flutter" Background="White"/>
+                <ComboBoxItem Content="Postman" Background="White"/>
 			</ComboBox>
 			<TextBlock Foreground="Black" Grid.Row="7" Text="Service Type:" Margin="0,10,10,0"/>
 			<ComboBox x:Name="cboServiceType" Background="White" Foreground="Black" Grid.Row="8" SelectedIndex="0" Margin="0,10,0,0">
