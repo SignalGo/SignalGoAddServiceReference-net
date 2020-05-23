@@ -387,10 +387,10 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 return;
             if (autoDetectionAsyncClass == null)
             {
-                 string serviceAttribute = $@"{prefix}[ServiceContract(""{classReferenceInfo.ServiceName}"", {serviceType}, InstanceType.SingleInstance)]";
-            builder.AppendLine(serviceAttribute);
+                string serviceAttribute = $@"{prefix}[ServiceContract(""{classReferenceInfo.ServiceName}"", {serviceType}, InstanceType.SingleInstance)]";
+                builder.AppendLine(serviceAttribute);
             }
-           
+
             string interfacePrefix;
             if (classReferenceInfo.Type == ClassReferenceType.CallbackLevel)
                 interfacePrefix = classReferenceInfo.NormalizedName.StartsWith("i", StringComparison.OrdinalIgnoreCase) ? "" : "I";
@@ -866,7 +866,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         {
             string baseName = "";
             if (!string.IsNullOrEmpty(classReferenceInfo.BaseClassName))
-                baseName = " : " + classReferenceInfo.BaseClassName;
+                baseName = " : " + ReplaceNameSpace(classReferenceInfo.BaseClassName, config);
             foreach (var item in attributes)
             {
                 builder.AppendLine(item);
