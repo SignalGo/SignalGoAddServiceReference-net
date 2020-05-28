@@ -37,6 +37,11 @@ namespace SignalGoAddServiceReference.Helpers
                 webRequest.ContentType = "SignalGo Service Reference";
                 webRequest.Headers.Add("servicenamespace", config.ServiceNameSpace);
                 webRequest.Headers.Add("selectedLanguage", config.LanguageType.ToString());
+                webRequest.Method = "POST";
+                PostToServerInfo postToServerInfo = new PostToServerInfo();
+                postToServerInfo.SkipAssemblies = config.SkipAssemblies;
+                var jsonBinary = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(postToServerInfo));
+                webRequest.GetRequestStream().Write(jsonBinary, 0, jsonBinary.Length);
                 WebResponse response = webRequest.GetResponse();
                 if (response.ContentLength <= 0)
                     throw new Exception("Url ContentLength is not set!");

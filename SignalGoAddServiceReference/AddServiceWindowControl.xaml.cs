@@ -30,6 +30,7 @@
         {
             InitializeComponent();
             lstReplaceNameSpaces.ItemsSource = ReplaceNameSpaces;
+            lstSkipAssemblies.ItemsSource = SkipAssemblies;
         }
 
         /// <summary>
@@ -84,6 +85,7 @@
         public Action FinishedAction { get; set; }
 
         public ObservableCollection<ReplaceNameSpaceInfo> ReplaceNameSpaces { get; set; } = new ObservableCollection<ReplaceNameSpaceInfo>();
+        public ObservableCollection<string> SkipAssemblies { get; set; } = new ObservableCollection<string>();
         private void btnAddService_Click(object sender, RoutedEventArgs e)
         {
             Dispatcher.VerifyAccess();
@@ -121,6 +123,7 @@
                     IsJustGenerateServices = chkJustServices.IsChecked.Value,
                     IsAutomaticSyncAndAsyncDetection = rdoIsAutomaticDetection.IsChecked.Value,
                     ReplaceNameSpaces = ReplaceNameSpaces.ToList(),
+                    SkipAssemblies = SkipAssemblies.ToList(),
                     CustomNameSpaces = customNameSpaces.Text
                 };
 
@@ -161,6 +164,32 @@
             ReplaceNameSpaces.Add(new ReplaceNameSpaceInfo() { From = fromNameSpace.Text, To = toNameSpace.Text });
             fromNameSpace.Text = "";
             toNameSpace.Text = "";
+        }
+
+        private void btnAddSkipAssembly_Click(object sender, RoutedEventArgs e)
+        {
+            if (SkipAssemblies.Any(x => x == txtSkipAssembly.Text))
+            {
+                MessageBox.Show($"{txtSkipAssembly.Text} exist", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            else if (string.IsNullOrEmpty(txtSkipAssembly.Text))
+            {
+                MessageBox.Show($"from value cannot be empty", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            else if (!txtSkipAssembly.Text.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show($"Please set assembly extension as .dll like space.example.dll", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            SkipAssemblies.Add(txtSkipAssembly.Text);
+            txtSkipAssembly.Text = "";
+        }
+
+        private void btnSkipAssembly_Click(object sender, RoutedEventArgs e)
+        {
+            SkipAssemblies.Remove((string)((Button)sender).DataContext);
         }
     }
 }

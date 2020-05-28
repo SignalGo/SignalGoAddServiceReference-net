@@ -172,6 +172,14 @@ namespace SignalGoAddServiceReference
                         {
                             content.ReplaceNameSpaces.Add(item);
                         }
+
+                    }
+                    if (config.SkipAssemblies != null)
+                    {
+                        foreach (var item in config.SkipAssemblies)
+                        {
+                            content.SkipAssemblies.Add(item);
+                        }
                     }
                     addServiceWindow.ShowDialog();
                 }

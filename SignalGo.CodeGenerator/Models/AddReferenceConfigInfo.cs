@@ -19,5 +19,11 @@ namespace SignalGo.CodeGenerator.Models
 
         public string CustomNameSpaces { get; set; }
         public List<ReplaceNameSpaceInfo> ReplaceNameSpaces { get; set; }
+        public List<string> SkipAssemblies { get; set; }
+    }
+
+    public class PostToServerInfo
+    { 
+        public List<string> SkipAssemblies { get; set; }
     }
 }
