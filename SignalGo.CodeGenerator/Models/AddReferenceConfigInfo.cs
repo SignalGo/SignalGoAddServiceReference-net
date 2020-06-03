@@ -1,4 +1,5 @@
-﻿using SignalGo.Shared.Models.ServiceReference;
+﻿using Newtonsoft.Json;
+using SignalGo.Shared.Models.ServiceReference;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,8 @@ namespace SignalGo.CodeGenerator.Models
         public string CustomNameSpaces { get; set; }
         public List<ReplaceNameSpaceInfo> ReplaceNameSpaces { get; set; }
         public List<string> SkipAssemblies { get; set; }
+        [JsonIgnore]
+        public List<string> InternalNameSpaces { get; set; } = new List<string>();
     }
 
     public class PostToServerInfo

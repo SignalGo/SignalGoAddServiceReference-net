@@ -41,11 +41,25 @@ namespace SignalGo.CodeGenerator.Helpers
                 var find = config.ReplaceNameSpaces.FirstOrDefault(x => x.From == nameSpace);
                 if (find != null)
                 {
-                    return find.To;
+                    return ReplaceGlobalNameSpace(find.To, config);
+                }
+            }
+            return ReplaceGlobalNameSpace(nameSpace, config);
+        }
+
+        public static string ReplaceGlobalNameSpace(string nameSpace, AddReferenceConfigInfo config)
+        {
+            if (config.ReplaceNameSpaces != null)
+            {
+                var find = config.ReplaceNameSpaces.FirstOrDefault(x => x.IsGlobal);
+                if (find != null && config.InternalNameSpaces.Any(x => x.Equals(nameSpace, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return find.To + "." + nameSpace;
                 }
             }
             return nameSpace;
         }
+
         public static string[] GetCustomNameSpaces(AddReferenceConfigInfo config)
         {
             if (!string.IsNullOrEmpty(config.CustomNameSpaces))

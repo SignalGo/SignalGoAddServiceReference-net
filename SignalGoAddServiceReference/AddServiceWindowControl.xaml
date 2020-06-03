@@ -64,15 +64,16 @@ The code will be created into the &quot;Connected Services/MyAppServices&quot; f
 					<TextBox x:Name="customNameSpaces" AcceptsReturn="True" Height="50"/>
 					<TextBlock Text="Replace Name Spaces:" Margin="5"/>
 					<StackPanel Orientation="Horizontal">
-						<TextBlock Text="From:" Margin="5"/>
-						<TextBox x:Name="fromNameSpace" Width="100"/>
+                        <CheckBox x:Name="chkIsGlobal" ToolTip="If you check it, this will replace all of the namespaces" Content="From:" Margin="5"/>
+						<TextBox x:Name="fromNameSpace" Width="80"/>
 						<TextBlock Text="To:" Margin="5"/>
-						<TextBox x:Name="toNameSpace" Width="100"/>
+						<TextBox x:Name="toNameSpace" Width="80"/>
 						<Button x:Name="btnAddNameSpace" Click="BtnAddNameSpace_Click" Content="Add" Margin="10,0,0,0" Padding="25,0,25,0"/>
 					</StackPanel>
                     <ListView x:Name="lstReplaceNameSpaces" Margin="0,10,0,0" MaxHeight="300" ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <ListView.View>
                             <GridView>
+                                <GridViewColumn Header="Is Global" DisplayMemberBinding="{Binding IsGlobal}" />
                                 <GridViewColumn Header="From" DisplayMemberBinding="{Binding From}" />
                                 <GridViewColumn Header="To" DisplayMemberBinding="{Binding To}" />
                                 <GridViewColumn Header="Remove">

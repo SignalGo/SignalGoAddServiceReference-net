@@ -8,6 +8,7 @@ namespace SignalGo.Shared.Models.ServiceReference
 {
     public class ReplaceNameSpaceInfo
     {
+        public bool IsGlobal { get; set; }
         public string From { get; set; }
         public string To { get; set; }
     }

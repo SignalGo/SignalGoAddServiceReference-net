@@ -27,7 +27,7 @@ namespace SignalGo.CodeGenerator.Models
             StringBuilder stringBuilder = new StringBuilder();
             if (Childs.Count > 0)
             {
-                stringBuilder.Append(Name);
+                stringBuilder.Append(Name.Contains(".") ? ("global::" + Name) : Name);
                 stringBuilder.Append('<');
                 foreach (GenericInfo item in Childs)
                 {
@@ -39,7 +39,7 @@ namespace SignalGo.CodeGenerator.Models
             }
             else
             {
-                stringBuilder.Append(Name);
+                stringBuilder.Append(Name.Contains(".") ? ("global::" + Name) : Name);
             }
             return stringBuilder.ToString();
         }
@@ -50,7 +50,7 @@ namespace SignalGo.CodeGenerator.Models
             if (index >= 0)
             {
                 string name = clearString(Name.Substring(index + 1));
-                Name = name;
+                Name = name.Contains(".") ? name.Replace("global::", "") : name;
             }
             if (Childs != null)
             {
@@ -79,6 +79,7 @@ namespace SignalGo.CodeGenerator.Models
                 }
             }
         }
+
         public void ClearNamesAndTypes(Func<string, string> clearString)
         {
             string name = clearString(Name);
@@ -91,6 +92,7 @@ namespace SignalGo.CodeGenerator.Models
                 }
             }
         }
+
         public void GetNameSpaces(Dictionary<string, List<string>> keyValuePairs, Func<string, string> clearString)
         {
             int index = Name.LastIndexOf('.');

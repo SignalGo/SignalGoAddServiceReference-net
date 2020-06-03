@@ -154,16 +154,25 @@
             if (ReplaceNameSpaces.Any(x => x.From == fromNameSpace.Text))
             {
                 MessageBox.Show($"{fromNameSpace.Text} exist", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
             }
-            else if (string.IsNullOrEmpty(fromNameSpace.Text))
+            else if (string.IsNullOrEmpty(fromNameSpace.Text) && !chkIsGlobal.IsChecked.GetValueOrDefault())
             {
                 MessageBox.Show($"from value cannot be empty", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
             }
-            ReplaceNameSpaces.Add(new ReplaceNameSpaceInfo() { From = fromNameSpace.Text, To = toNameSpace.Text });
-            fromNameSpace.Text = "";
-            toNameSpace.Text = "";
+            else if (!string.IsNullOrEmpty(fromNameSpace.Text) && chkIsGlobal.IsChecked.GetValueOrDefault())
+            {
+                MessageBox.Show($"you cannot set text for global reference replacement, please empty from textbox then try again or uncheck it", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            else if (string.IsNullOrEmpty(fromNameSpace.Text) && chkIsGlobal.IsChecked.GetValueOrDefault() && ReplaceNameSpaces.Any(x => x.IsGlobal))
+            {
+                MessageBox.Show($"you cannot global replacement double time", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            else
+            {
+                ReplaceNameSpaces.Add(new ReplaceNameSpaceInfo() { From = fromNameSpace.Text, To = toNameSpace.Text, IsGlobal = chkIsGlobal.IsChecked.GetValueOrDefault() });
+                fromNameSpace.Text = "";
+                toNameSpace.Text = "";
+            }
         }
 
         private void btnAddSkipAssembly_Click(object sender, RoutedEventArgs e)
