@@ -280,8 +280,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             builderResult.AppendLine("{");
             foreach (ClassReferenceInfo callbackInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.CallbackLevel))
             {
-                GenerateServiceInterface(callbackInfo, "    ", builderResult, false, "ServiceType.ClientService", config.IsAutomaticSyncAndAsyncDetection, config, false, null);
-                GenerateServiceInterface(callbackInfo, "    ", builderResult, false, "ServiceType.ClientService", config.IsAutomaticSyncAndAsyncDetection, config, true, null);
+                GenerateServiceInterface(callbackInfo, "    ", builderResult, true, "ServiceType.ClientService", config.IsAutomaticSyncAndAsyncDetection, config, false, true);
+                GenerateServiceInterface(callbackInfo, "    ", builderResult, false, "ServiceType.ClientService", config.IsAutomaticSyncAndAsyncDetection, config, false, false);
             }
             builderResult.AppendLine("}");
             builderResult.AppendLine("");
@@ -406,7 +406,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         {
             if (justAsync && autoDetectionAsyncClass.HasValue)
                 return;
-            if (autoDetectionAsyncClass == null)
+            if (autoDetectionAsyncClass == null || serviceType == "ServiceType.ClientService")
             {
                 string serviceAttribute = $@"{prefix}[ServiceContract(""{classReferenceInfo.ServiceName}"", {serviceType}, InstanceType.SingleInstance)]";
                 builder.AppendLine(serviceAttribute);
@@ -449,12 +449,12 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                         else
                             GenerateInterfaceMethod(methodInfo, prefix + prefix, builder, isAutoDetection, config);
                     }
-                    else if (serviceType == "ServiceType.ClientService")
-                    {
-                        GenerateInterfaceMethod(methodInfo, prefix + prefix, builder, isAutoDetection, config);
-                        if (generateAyncMethods)
-                            GenerateInterfaceMethodAsync(methodInfo, prefix + prefix, builder, isAutoDetection, config);
-                    }
+                    //else if (serviceType == "ServiceType.ClientService")
+                    //{
+                    //    GenerateInterfaceMethod(methodInfo, prefix + prefix, builder, isAutoDetection, config);
+                    //    if (generateAyncMethods)
+                    //        GenerateInterfaceMethodAsync(methodInfo, prefix + prefix, builder, isAutoDetection, config);
+                    //}
                 }
                 else
                 {
