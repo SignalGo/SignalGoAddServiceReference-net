@@ -279,7 +279,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             //AddToDictionary(nameSpaces, returnTypeName);
             if (returnTypeName == "SignalGo.Shared.Http.ActionResult")
                 return;
-            builder.AppendLine($"{prefix}{methodInfo.DuplicateName}({GenerateMethodParameters(methodInfo, baseServiceName, nameSpaces)}): Promise<{returnTypeName}> {{");
+            builder.AppendLine($"{prefix}{methodInfo.DuplicateName}({GenerateMethodParameters(methodInfo, baseServiceName, nameSpaces)}): Observable<{returnTypeName}> {{");
             if (methodInfo.ProtocolType == ProtocolType.HttpGet)
                 builder.Append($@"return this.server.get<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
             else
@@ -342,6 +342,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 { "long","number" },
                 { "decimal","number" },
                 { "double","number" },
+                { "float","number" },
                 { "byte","number" },
                 { "short","number" },
                 { "uint","number" },
@@ -360,6 +361,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 { "byte[]","number[]" },
                 { "int[]","number[]" },
                 { "long[]","number[]" },
+                { "bool[]","boolean[]" },
 
                 { "system.datetime","Date" },
                 { "system.date","Date" },
@@ -563,6 +565,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         private void GenerateHttpServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, string baseServiceName, Dictionary<string, Dictionary<string, string>> nameSpaces)
         {
             builder.AppendLine($@"import {{ Injectable }} from '@angular/core';
+import {{ Observable }} from 'rxjs';
 import {{ ServerConnectionService }} from './server-connection.service';
 @Injectable({{
   providedIn: 'root'
@@ -619,6 +622,10 @@ import {{ ServerConnectionService }} from './server-connection.service';
                     {
                         if (!dic.ContainsKey(FixIllegalChars(item.Key)))
                             dic[FixIllegalChars(item.Key)] = FixIllegalChars(value);
+                        else
+                        {
+
+                        }
                     }
                     else
                     {
