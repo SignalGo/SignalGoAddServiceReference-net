@@ -314,7 +314,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             //AddToDictionary(nameSpaces, propertyInfo.ReturnTypeName);
 
             //create field
-            builder.AppendLine($"{prefix}{propertyInfo.Name}{(isNullable ? "?" : "")}: {propertyInfo.ReturnTypeName};");
+            builder.AppendLine($"{prefix}{propertyInfo.Name.ToCamelCase()}{(isNullable ? "?" : "")}: {propertyInfo.ReturnTypeName};");
 
             //builder.AppendLine($"{prefix}public get {propertyInfo.Name}(): {propertyInfo.ReturnTypeName} {{");
             //builder.AppendLine($"{prefix + prefix }return this._{propertyInfo.Name};");
