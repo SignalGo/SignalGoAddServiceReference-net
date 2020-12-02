@@ -367,6 +367,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 { "system.date","Date" },
                 { "system.guid","string" },
                 { "system.uri","string" },
+                { "system.timespan","string" },
             };
         private string GetReturnTypeName(string name, string serviceName, Dictionary<string, Dictionary<string, string>> nameSpaces)
         {
@@ -566,7 +567,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         {
             builder.AppendLine($@"import {{ Injectable }} from '@angular/core';
 import {{ Observable }} from 'rxjs';
-import {{ ServerConnectionService }} from './server-connection.service';
+import {{ ServerConnectionService }} from '../server-connection.service';
 @Injectable({{
   providedIn: 'root'
 }})");
