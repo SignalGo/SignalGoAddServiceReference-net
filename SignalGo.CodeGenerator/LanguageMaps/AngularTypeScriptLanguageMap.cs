@@ -165,7 +165,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             }
 
             string folder = "";
-
+            EnumNames.Clear();
             EnumNames.AddRange(namespaceReferenceInfo.Enums);
             foreach (IGrouping<string, ClassReferenceInfo> groupInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ModelLevel || x.Type == ClassReferenceType.InterfaceLevel).GroupBy(x => x.NameSpace))
             {

@@ -164,7 +164,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             }
 
             string folder = "";
-
+            EnumNames.Clear();
+            EnumNames.AddRange(namespaceReferenceInfo.Enums);
 
             foreach (IGrouping<string, ClassReferenceInfo> groupInfo in namespaceReferenceInfo.Classes.Where(x => x.Type == ClassReferenceType.ModelLevel || x.Type == ClassReferenceType.InterfaceLevel).GroupBy(x => x.NameSpace))
             {
@@ -254,6 +255,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
             //return builderResult.ToString();
         }
+        public static List<EnumReferenceInfo> EnumNames { get; set; } = new List<EnumReferenceInfo>();
 
         public string GetFileNameFromClassName(string name)
         {
@@ -306,6 +308,37 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 resultBuilder.AppendLine(result);
         }
 
+        private void SetPropertyValue(PropertyReferenceInfo propertyInfo, string prefix, bool generateOnPropertyChanged, StringBuilder builder, string baseServiceName, Dictionary<string, Dictionary<string, string>> nameSpaces)
+        {
+            bool isNullable = propertyInfo.ReturnTypeName.Contains("?");
+            //create field
+            builder.AppendLine($"{prefix}{prefix}this.{propertyInfo.Name.ToCamelCase()} = {GetTypeValueSetter(isNullable, GetReturnTypeName(propertyInfo.ReturnTypeName, baseServiceName, nameSpaces))};");
+            builder.AppendLine();
+        }
+
+        string GetTypeValueSetter(bool isNullable, string type)
+        {
+            if (isNullable)
+                return "null";
+            else if (type == "String")
+                return "\"\"";
+            else if (type == "boolean")
+                return "false";
+            else if (type == "int" || type == "long" || type == "Double" || type == "number" || type == "byte")
+                return "0";
+            else if (type.EndsWith("[]"))
+                return "[]";//$"new {type.Substring(0, type.Length - 1)}0]";
+            var findEnum = EnumNames.FirstOrDefault(x => x.Name == type);
+            if (findEnum != null)
+            {
+                if (findEnum.KeyValues.Count > 0)
+                    return $"{type}.{findEnum.KeyValues.FirstOrDefault().Key}";
+                else
+                    return "null";
+            }
+            return $"new {type}()";
+        }
+
         private void GenerateProperty(PropertyReferenceInfo propertyInfo, string prefix, bool generateOnPropertyChanged, StringBuilder builder, string baseServiceName, Dictionary<string, Dictionary<string, string>> nameSpaces)
         {
             bool isNullable = propertyInfo.ReturnTypeName.Contains("?");
@@ -338,10 +371,12 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             //AddToDictionary(nameSpaces, propertyInfo.ReturnTypeName);
 
             //create field
+            builder.AppendLine($"{prefix} @JsonProperty(\"{propertyInfo.Name}\")");
             builder.AppendLine($"{prefix} public {propertyInfo.ReturnTypeName} get{propertyInfo.Name}(){{");
             builder.AppendLine($"{prefix + prefix} return {propertyInfo.Name.ToCamelCase()};");
             builder.AppendLine($"{prefix} }}");
 
+            builder.AppendLine($"{prefix} @JsonProperty(\"{propertyInfo.Name}\")");
             builder.AppendLine($"{prefix} public void set{propertyInfo.Name}({propertyInfo.ReturnTypeName} {propertyInfo.Name.ToCamelCase()}){{");
             builder.AppendLine($"{prefix + prefix} this.{propertyInfo.Name.ToCamelCase()} = {propertyInfo.Name.ToCamelCase()};");
             builder.AppendLine($"{prefix} }}");
@@ -636,7 +671,7 @@ import {{ ServerConnectionService }} from './server-connection.service';
         {
             if (string.IsNullOrEmpty(fullName) || fullName == "SignalGo.Shared.Http.ActionResult")
                 return fullName;
-            GenericInfo generic = GenericInfo.GenerateGeneric(fullName,  GenericNumbericTemeplateType.Skip);
+            GenericInfo generic = GenericInfo.GenerateGeneric(fullName, GenericNumbericTemeplateType.Skip);
             Dictionary<string, List<string>> data = new Dictionary<string, List<string>>();
             generic.GetNameSpaces(data, ClearString);
             foreach (KeyValuePair<string, List<string>> item in data)
@@ -704,12 +739,25 @@ import {{ ServerConnectionService }} from './server-connection.service';
 
                 baseName = " extends " + typeName;
             }
-            GenericInfo genericInfo = GenericInfo.GenerateGeneric(classReferenceInfo.NormalizedName,  GenericNumbericTemeplateType.Skip);
+            GenericInfo genericInfo = GenericInfo.GenerateGeneric(classReferenceInfo.NormalizedName, GenericNumbericTemeplateType.Skip);
+            builder.AppendLine("import com.fasterxml.jackson.annotation.JsonProperty;");
+            builder.AppendLine();
             builder.AppendLine("public class " + classReferenceInfo.NormalizedName + baseName + "{");
             builder.AppendLine($@"
         public {genericInfo.Name}() {{
-            
-        }}");
+        ");
+            if (!string.IsNullOrEmpty(baseName))
+                builder.AppendLine("super();");
+            foreach (PropertyReferenceInfo propertyInfo in classReferenceInfo.Properties)
+            {
+                if (mapDataClassInfo != null && mapDataClassInfo.IgnoreProperties.Contains(propertyInfo.Name))
+                    continue;
+                if (propertyInfo.ReturnTypeName == "T")
+                    continue;
+                SetPropertyValue(propertyInfo, prefix + prefix, false, builder, baseServiceName, nameSpaces);
+            }
+            //end of constructor
+            builder.AppendLine(prefix + "}");
             foreach (PropertyReferenceInfo propertyInfo in classReferenceInfo.Properties)
             {
                 if (mapDataClassInfo != null && mapDataClassInfo.IgnoreProperties.Contains(propertyInfo.Name))
