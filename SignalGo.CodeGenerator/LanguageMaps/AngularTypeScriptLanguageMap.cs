@@ -276,12 +276,17 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private void GenerateMethod(List<ClassReferenceInfo> models, string serviceName, MethodReferenceInfo methodInfo, string prefix, StringBuilder resultBuilder, bool doSemicolon, string baseServiceName, Dictionary<string, Dictionary<string, string>> nameSpaces)
         {
+            bool isStream = false;
+            if (methodInfo.Parameters.Any(x => x.TypeName.StartsWith("SignalGo.Shared.Models.StreamInfo")))
+            {
+                isStream = true;
+            }
             StringBuilder builder = new StringBuilder();
             string returnTypeName = GetReturnTypeName(methodInfo.ReturnTypeName, baseServiceName, nameSpaces);
             //AddToDictionary(nameSpaces, returnTypeName);
             if (returnTypeName == "SignalGo.Shared.Http.ActionResult")
                 return;
-            builder.AppendLine($"{prefix}{methodInfo.DuplicateName.ToCamelCase()}({GenerateMethodParameters(methodInfo, baseServiceName, nameSpaces)}): Observable<{returnTypeName}> {{");
+            builder.AppendLine($"{prefix}{methodInfo.DuplicateName.ToCamelCase()}({GenerateMethodParameters(methodInfo, baseServiceName, nameSpaces,isStream)}): Observable<{returnTypeName}> {{");
 
             //return type without Generic
             builder.AppendLine($"var result = new {returnTypeName}();");
@@ -306,14 +311,23 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                         builder.AppendLine($"result.result = new {text}();");
                 }
             }
-            if (methodInfo.ProtocolType == ProtocolType.HttpGet)
-                builder.Append($@"return this.server.get<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
+            if (isStream)
+            {
+                builder.Append($@"return this.server.postFile<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
+            }
             else
-                builder.Append($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
+            {
+                if (methodInfo.ProtocolType == ProtocolType.HttpGet)
+                    builder.Append($@"return this.server.get<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
+                else
+                    builder.Append($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
+            }
 
             int index = 0;
             if (methodInfo.Parameters.Count == 0)
                 builder.AppendLine("null");
+            else if (isStream)
+                builder.AppendLine("params");
             else
             {
                 builder.AppendLine(" {");
@@ -369,7 +383,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         private void GenerateProperty(PropertyReferenceInfo propertyInfo, string prefix, bool generateOnPropertyChanged, StringBuilder builder, string baseServiceName, Dictionary<string, Dictionary<string, string>> nameSpaces)
         {
             bool isNullable = propertyInfo.ReturnTypeName.Contains("?");
-            propertyInfo.ReturnTypeName = GetReturnTypeName(propertyInfo.ReturnTypeName, baseServiceName, nameSpaces);
+            //propertyInfo.ReturnTypeName = GetReturnTypeName(propertyInfo.ReturnTypeName, baseServiceName, nameSpaces);
             //AddToDictionary(nameSpaces, propertyInfo.ReturnTypeName);
 
             //create field
@@ -606,8 +620,12 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             return builder.ToString();
         }
 
-        private string GenerateMethodParameters(MethodReferenceInfo methodInfo, string baseServiceName, Dictionary<string, Dictionary<string, string>> nameSpaces)
+        private string GenerateMethodParameters(MethodReferenceInfo methodInfo, string baseServiceName, Dictionary<string, Dictionary<string, string>> nameSpaces,bool isStream)
         {
+            if (isStream)
+            {
+                return "...params: any[]";
+            }
             StringBuilder builder = new StringBuilder();
             int index = 0;
             foreach (ParameterReferenceInfo item in methodInfo.Parameters)
