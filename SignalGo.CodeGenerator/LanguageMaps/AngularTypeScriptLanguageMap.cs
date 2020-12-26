@@ -286,7 +286,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             //AddToDictionary(nameSpaces, returnTypeName);
             if (returnTypeName == "SignalGo.Shared.Http.ActionResult")
                 return;
-            builder.AppendLine($"{prefix}{methodInfo.DuplicateName.ToCamelCase()}({GenerateMethodParameters(methodInfo, baseServiceName, nameSpaces,isStream)}): Observable<{returnTypeName}> {{");
+            builder.AppendLine($"{prefix}{methodInfo.DuplicateName.ToCamelCase()}({GenerateMethodParameters(methodInfo, baseServiceName, nameSpaces, isStream)}): Observable<{returnTypeName}> {{");
 
             //return type without Generic
             builder.AppendLine($"var result = new {returnTypeName}();");
@@ -327,7 +327,17 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             if (methodInfo.Parameters.Count == 0)
                 builder.AppendLine("null");
             else if (isStream)
+            {
                 builder.AppendLine("params");
+                foreach (ParameterReferenceInfo item in methodInfo.Parameters)
+                {
+                    if (item.TypeName.StartsWith("SignalGo.Shared.Models.StreamInfo"))
+                        continue;
+                    builder.Append(", ");
+                    builder.AppendLine(prefix + prefix + prefix + $"{{ Name: \"{item.Name}\", Value: {item.Name} }}");
+                    index++;
+                }
+            }
             else
             {
                 builder.AppendLine(" {");
@@ -620,22 +630,26 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             return builder.ToString();
         }
 
-        private string GenerateMethodParameters(MethodReferenceInfo methodInfo, string baseServiceName, Dictionary<string, Dictionary<string, string>> nameSpaces,bool isStream)
+        private string GenerateMethodParameters(MethodReferenceInfo methodInfo, string baseServiceName, Dictionary<string, Dictionary<string, string>> nameSpaces, bool isStream)
         {
-            if (isStream)
-            {
-                return "...params: any[]";
-            }
             StringBuilder builder = new StringBuilder();
             int index = 0;
             foreach (ParameterReferenceInfo item in methodInfo.Parameters)
             {
+                if (item.TypeName.StartsWith("SignalGo.Shared.Models.StreamInfo"))
+                    continue;
                 if (index > 0)
                     builder.Append(", ");
                 string returnType = GetReturnTypeName(item.TypeName, baseServiceName, nameSpaces);
                 //AddToDictionary(nameSpaces, returnType);
                 builder.Append($"{item.Name}: {returnType}");
                 index++;
+            }
+            if (isStream)
+            {
+                if (index > 0)
+                    builder.Append(", ");
+                builder.Append("...params: any[]");
             }
             return builder.ToString();
         }
