@@ -297,7 +297,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 text = text.Substring(1, text.LastIndexOf('>') - 1);
                 if (text.EndsWith("[]"))
                 {
-                    builder.AppendLine($"result.result = new {text.Substring(0, text.Length - 1)}0];");
+                    //builder.AppendLine($"result.result = new {text.Substring(0, text.Length - 1)}0];");
+                    builder.AppendLine($"result.result = [];");
                 }
                 else
                 {
