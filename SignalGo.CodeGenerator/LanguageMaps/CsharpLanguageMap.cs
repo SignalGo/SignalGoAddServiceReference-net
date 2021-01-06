@@ -549,7 +549,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private static void GenerateOneWayMethod(MethodReferenceInfo methodInfo, string serviceName, string prefix, StringBuilder builder, AddReferenceConfigInfo config)
         {
-            builder.AppendLine($"{prefix}public {ReplaceNameSpace(methodInfo.ReturnTypeName, config)} {methodInfo.Name}({GenerateMethodParameters(methodInfo, config)})");
+            builder.AppendLine($"{prefix}public virtual {ReplaceNameSpace(methodInfo.ReturnTypeName, config)} {methodInfo.Name}({GenerateMethodParameters(methodInfo, config)})");
             builder.AppendLine($"{prefix}{{");
             builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientProvider.SendOneWayMethod<{ReplaceNameSpace(methodInfo.ReturnTypeName, config)}>(_signalGoServerAddress, _signalGoPortNumber, \"{serviceName}\", \"{methodInfo.Name}\"{GenerateMethodParametersWitoutTypes(methodInfo)});");
             builder.AppendLine($"{prefix}}}");
@@ -561,7 +561,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             if (methodInfo.ReturnTypeName != "void")
                 returnType = "Task<" + ReplaceNameSpace(methodInfo.ReturnTypeName, config) + ">";
             string asyncName = isAutoDetection ? "Async" : "";
-            builder.AppendLine($"{prefix}public {returnType} {methodInfo.Name}{asyncName}({GenerateMethodParameters(methodInfo, config)})");
+            builder.AppendLine($"{prefix}public virtual {returnType} {methodInfo.Name}{asyncName}({GenerateMethodParameters(methodInfo, config)})");
             builder.AppendLine($"{prefix}{{");
             string result = $"SignalGo.Client.ClientProvider.SendOneWayMethodAsync<{ReplaceNameSpace(methodInfo.ReturnTypeName, config)}>(_signalGoServerAddress, _signalGoPortNumber, \"{serviceName}\", \"{methodInfo.Name}\"{GenerateMethodParametersWitoutTypes(methodInfo)})";
 
@@ -572,7 +572,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private static void GenerateStreamMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder, bool isAutoDetection, AddReferenceConfigInfo config)
         {
-            builder.AppendLine($"{prefix}public {ReplaceNameSpace(methodInfo.ReturnTypeName, config)} {methodInfo.Name.RemoveEndOfAsync(isAutoDetection)}({GenerateMethodParameters(methodInfo, config)})");
+            builder.AppendLine($"{prefix}public virtual {ReplaceNameSpace(methodInfo.ReturnTypeName, config)} {methodInfo.Name.RemoveEndOfAsync(isAutoDetection)}({GenerateMethodParameters(methodInfo, config)})");
             builder.AppendLine($"{prefix}{{");
             string returnType = ReplaceNameSpace(methodInfo.ReturnTypeName, config);
             string returnValue = "return ";
@@ -605,7 +605,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
             string asyncName = isAutoDetection ? "Async" : "";
 
-            builder.AppendLine($"{prefix}public {returnType} {methodInfo.Name.RemoveEndOfAsync(isAutoDetection)}{asyncName}({GenerateMethodParameters(methodInfo, config)})");
+            builder.AppendLine($"{prefix}public virtual {returnType} {methodInfo.Name.RemoveEndOfAsync(isAutoDetection)}{asyncName}({GenerateMethodParameters(methodInfo, config)})");
             builder.AppendLine($"{prefix}{{");
             builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientProvider.UploadStreamAsync<{normalReturnType}>(CurrentProvider, ServerAddress, Port, ServiceName ,\"{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
             builder.AppendLine($"{prefix + prefix}{{");
@@ -616,7 +616,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private static void GenerateMethod(MethodReferenceInfo methodInfo, string prefix, StringBuilder builder, bool isAutoDetection, AddReferenceConfigInfo config)
         {
-            builder.AppendLine($"{prefix}public {ReplaceNameSpace(methodInfo.ReturnTypeName, config)} {methodInfo.Name.RemoveEndOfAsync(isAutoDetection)}({GenerateMethodParameters(methodInfo, config)})");
+            builder.AppendLine($"{prefix}public virtual {ReplaceNameSpace(methodInfo.ReturnTypeName, config)} {methodInfo.Name.RemoveEndOfAsync(isAutoDetection)}({GenerateMethodParameters(methodInfo, config)})");
             builder.AppendLine($"{prefix}{{");
             string returnType = ReplaceNameSpace(methodInfo.ReturnTypeName, config);
             string returnValue = "return ";
@@ -663,7 +663,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 returnTypeValue = "<" + ReplaceNameSpace(methodInfo.ReturnTypeName, config) + ">";
             }
             string asyncName = isAutoDetection ? "Async" : "";
-            builder.AppendLine($"{prefix}public {returnType} {methodInfo.Name.RemoveEndOfAsync(isAutoDetection)}{asyncName}({GenerateMethodParameters(methodInfo, config)})");
+            builder.AppendLine($"{prefix}public virtual {returnType} {methodInfo.Name.RemoveEndOfAsync(isAutoDetection)}{asyncName}({GenerateMethodParameters(methodInfo, config)})");
             builder.AppendLine($"{prefix}{{");
             builder.AppendLine($"{prefix + prefix}return SignalGo.Client.ClientManager.ConnectorExtensions.SendDataAsync{returnTypeValue}(CurrentProvider, ServiceName,\"{methodInfo.Name}\", new SignalGo.Shared.Models.ParameterInfo[]");
             builder.AppendLine($"{prefix + prefix}{{");
@@ -675,7 +675,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private static void GenerateHttpMethod(MethodReferenceInfo methodInfo, string serviceName, string prefix, StringBuilder builder, bool isAutoDetection, AddReferenceConfigInfo config, bool doSemicolon = true)
         {
-            builder.AppendLine($"{prefix}public {ReplaceNameSpace(methodInfo.ReturnTypeName, config)} {methodInfo.Name.RemoveEndOfAsync(isAutoDetection)}({GenerateMethodParameters(methodInfo, config)}){(doSemicolon ? ";" : "")}");
+            builder.AppendLine($"{prefix}public virtual {ReplaceNameSpace(methodInfo.ReturnTypeName, config)} {methodInfo.Name.RemoveEndOfAsync(isAutoDetection)}({GenerateMethodParameters(methodInfo, config)}){(doSemicolon ? ";" : "")}");
             bool isStream = methodInfo.ReturnTypeName.StartsWith("SignalGo.Shared.Models.StreamInfo");
             //generate empty data
             if (!doSemicolon)
@@ -713,7 +713,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         {
             string returnType = "public async Task";
             if (methodInfo.ReturnTypeName != "void")
-                returnType = "public async Task<" + ReplaceNameSpace(methodInfo.ReturnTypeName, config) + ">";
+                returnType = "public virtual async Task<" + ReplaceNameSpace(methodInfo.ReturnTypeName, config) + ">";
             string asyncName = isAutoDetection ? "Async" : "";
             bool isStream = methodInfo.ReturnTypeName.StartsWith("SignalGo.Shared.Models.StreamInfo");
             builder.AppendLine($"{prefix}{returnType} {methodInfo.Name.RemoveEndOfAsync(isAutoDetection)}{asyncName}({GenerateMethodParameters(methodInfo, config)}){(doSemicolon ? ";" : "")}");
