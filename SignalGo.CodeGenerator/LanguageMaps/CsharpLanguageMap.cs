@@ -893,6 +893,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 builder.AppendLine(item);
             }
             builder.AppendLine(prefix + "public partial class " + classReferenceInfo.NormalizedName + baseName);
+            if (!string.IsNullOrEmpty(classReferenceInfo.GenericParameterConstraints))
+                builder.AppendLine(classReferenceInfo.GenericParameterConstraints);
             builder.AppendLine(prefix + "{");
             foreach (PropertyReferenceInfo propertyInfo in classReferenceInfo.Properties)
             {
