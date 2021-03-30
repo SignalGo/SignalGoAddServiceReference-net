@@ -63,6 +63,7 @@ namespace SignalGo.CodeGenerator.Models
 
         public void ReplaceNameSpaces(Func<string, AddReferenceConfigInfo, string> clearNameSapceString, AddReferenceConfigInfo configInfo)
         {
+            Name = Name.Trim();
             if (Name.Contains("."))
             {
                 int index = Name.LastIndexOf('.');
