@@ -452,6 +452,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 { "system.guid","string" },
                 { "system.uri","string" },
                 { "system.timespan","string" },
+                { "object","Object" },
             };
         private string GetReturnTypeName(string name, string serviceName, Dictionary<string, Dictionary<string, string>> nameSpaces)
         {
