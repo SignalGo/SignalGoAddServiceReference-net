@@ -289,9 +289,9 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     name += "CallbackService";
                 jsonInitializer.AppendLine($"import 'package:{serviceName}/CallbackServices/{name}.dart';");
             }
-            jsonInitializer.AppendLine($"import 'package:{serviceName}/Runtime/ParameterInfo.dart';");
-            jsonInitializer.AppendLine($"import 'package:{serviceName}/Runtime/TypeMode.dart';");
-            jsonInitializer.AppendLine($"import 'package:{serviceName}/Runtime/TypeBuilder.dart';");
+            jsonInitializer.AppendLine($"import 'package:{FixImportPath(serviceName)}/ServerProvider/Runtime/ParameterInfo.dart';");
+            jsonInitializer.AppendLine($"import 'package:{FixImportPath(serviceName)}/ServerProvider/Runtime/TypeMode.dart';");
+            jsonInitializer.AppendLine($"import 'package:{FixImportPath(serviceName)}/ServerProvider/Runtime/TypeBuilder.dart';");
             jsonInitializer.AppendLine("##$IMPORTS");
             jsonInitializer.AppendLine(@"class JsonInitializer {");
             jsonInitializer.AppendLine('\t' + @"static void initialize() {");
@@ -394,7 +394,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
         {
             foreach (string item in JsonAllTypes)
             {
-                GetnerateJsonType(serviceName, namespaceReferenceInfo, builder, item);
+                GenerateJsonType(serviceName, namespaceReferenceInfo, builder, item);
             }
 
             while (AddTypesLater.Count > 0)
@@ -432,8 +432,9 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private int generatedJsonIndex = 0;
 
-        private void GetnerateJsonType(string serviceName, NamespaceReferenceInfo namespaceReferenceInfo, StringBuilder builder, string name)
+        private void GenerateJsonType(string serviceName, NamespaceReferenceInfo namespaceReferenceInfo, StringBuilder builder, string name)
         {
+            name = name.Replace("global::", "");
             if (JsonAllGeneratedTypes.Contains(name) ||
                 name == "String" || name == "bool" || name == "T" || name == "int" || name == "double" || name == "DateTime")
                 return;
@@ -449,7 +450,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             });
             foreach (GenericInfo item in generic.Childs)
             {
-                GetnerateJsonType(serviceName, namespaceReferenceInfo, builder, item.ToString().Trim());
+                GenerateJsonType(serviceName, namespaceReferenceInfo, builder, item.ToString().Trim());
             }
             generatedJsonIndex++;
 
@@ -481,6 +482,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                         }
                         else if (isForce && !(name == "String" || name == "bool" || name == "T" || name == "int" || name == "double" || name == "DateTime"))
                         {
+                            if (genericName == "List<T>")
+                                return false;
                             generatedJsonIndex++;
                             builder.AppendLine($@"var typeInfo{generatedJsonIndex} = TypeBuilder.make<{genericName}>(TypeMode.Array)
           .addProperty<{childName}>(""Add"", TypeMode.Array, null,
@@ -551,7 +554,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 else
                 {
                     typeMode = "TypeMode.Enum";
-                    EnumReferenceInfo findEnum = FindEnumByName(namespaceReferenceInfo, fullName);
+                    EnumReferenceInfo findEnum = FindEnumByName(namespaceReferenceInfo, fullName, true);
                     if (findEnum != null)
                     {
                         string import = $"import 'package:{serviceName}/{findEnum.NameSpace}/{findEnum.Name}.dart';";
@@ -564,13 +567,16 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     createInstance = $".createInstance(() => {genericName}.values)";
                 }
                 StringBuilder properties = new StringBuilder();
-                GenerateJsonProperties(properties, findClass, generic);
+                GenerateJsonProperties(properties, namespaceReferenceInfo, findClass, generic);
                 GenerateJsonBaseClasses(properties, namespaceReferenceInfo, findClass, generic);
                 if (JsonVariablesTypes.ContainsKey(genericName))
-                    throw new Exception($"Type {genericName} is duplicate but same name,please rename it and try again");
+                {
+                    return;
+                }
+                //throw new Exception($"Type {genericName} is duplicate,please rename it and try again");
                 JsonVariablesTypes.Add(genericName, $"typeInfo{ generatedJsonIndex}");
                 builder.AppendLine($@"var typeInfo{generatedJsonIndex} = TypeBuilder.make<{genericName}>({typeMode})
-      {properties.ToString()}
+      {properties}
       {createInstance}
       .build();");
             }
@@ -584,7 +590,54 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         }
 
-        private void GenerateJsonProperties(StringBuilder builder, ClassReferenceInfo classReferenceInfo, GenericInfo generic)
+        //static string NormalizePropertyTypeParser(string type, string value)
+        //{
+        //    if (!string.IsNullOrEmpty(value))
+        //        return $"value{value}";
+        //    if (type == "bool")
+        //        return "value.toLowerCase() == \"true\"";
+        //    else if (type == "int")
+        //        return "int.parse(value)";
+        //    else if (type == "double")
+        //        return "double.parse(value)";
+        //    else if (type == "DateTime")
+        //        return "DateTime.parse(value)";
+        //    else if ()
+        //    return type;
+        //}
+
+        string GetTypeModeOfPropertyType(string type, bool isEnum, out string createInstance)
+        {
+            if (isEnum)
+            {
+                createInstance = $",() => {type}.values";
+                return "Enum";
+            }
+            else if (type == "bool")
+            {
+                createInstance = $",() => false";
+                return "Boolean";
+            }
+            else if (type == "int")
+            {
+                createInstance = $",() => 1";
+                return "Int";
+            }
+            else if (type == "double")
+            {
+                createInstance = $",() => 1.0";
+                return "Double";
+            }
+            else if (type == "DateTime")
+            {
+                createInstance = $",() => DateTime.now()";
+                return "DateTime";
+            }
+            createInstance = $",() => new {type}()";
+            return "Object";
+        }
+
+        private void GenerateJsonProperties(StringBuilder builder, NamespaceReferenceInfo namespaceReferenceInfo, ClassReferenceInfo classReferenceInfo, GenericInfo generic)
         {
             if (classReferenceInfo == null)
                 return;
@@ -592,19 +645,21 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             {
                 if (property.ReturnTypeName == "T" || (property.ReturnTypeName.StartsWith("T") && int.TryParse(property.ReturnTypeName.Substring(1), out int detected)))
                     continue;
-                string addPropertyName = "addProperty";
+                string addPropertyName = "addPropertyWithInstance";
                 string instancePropertyContent = "";
-                if (property.ReturnTypeName.StartsWith("List<"))
+                string propertyType = GenericInfo.GenerateGeneric(property.ReturnTypeName, GenericNumbericTemeplateType.Skip).ToString();
+                bool isEnum = FindEnumByName(namespaceReferenceInfo, propertyType, false) != null;
+                if (propertyType.StartsWith("List<"))
                 {
-                    addPropertyName = "addPropertyWithInstance";
+                    //addPropertyName = "addPropertyWithInstance";
                     instancePropertyContent = $@",
-          () => new {property.ReturnTypeName}()";
+          () => new {generic}()";
                 }
-                builder.AppendLine($@".{addPropertyName}<{property.ReturnTypeName}>(
+                builder.AppendLine($@".{addPropertyName}<{generic}>(
           ""{property.Name.ToCamelCase()}"",
-          TypeMode.Object,
-          ({classReferenceInfo.NormalizedName} x) => x.{property.Name.ToCamelCase()},
-          ({classReferenceInfo.NormalizedName} x, {property.ReturnTypeName} value) => x.{property.Name.ToCamelCase()} = value{instancePropertyContent})");
+          TypeMode.{GetTypeModeOfPropertyType(propertyType, isEnum,out string createInstance)},
+          ({generic} x) => x.{property.Name.ToCamelCase()},
+          ({generic} x, {propertyType} value) => x.{property.Name.ToCamelCase()} = value{createInstance})");
             }
             if (generic.Childs.Count > 0)
             {
@@ -615,19 +670,14 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                     {
                         string fullName = generic.ToString();
                         string child = generic.Childs[index].ToString();
-                        string addPropertyName = "addProperty";
+                        bool isEnum = FindEnumByName(namespaceReferenceInfo, child, false) != null;
+                        string addPropertyName = "addPropertyWithInstance";
                         string instancePropertyContent = "";
-                        if (child.StartsWith("List<"))
-                        {
-                            addPropertyName = "addPropertyWithInstance";
-                            instancePropertyContent = $@",
-                        () => new {child}()";
-                        }
                         builder.AppendLine($@".{addPropertyName}<{child}>(
                         ""{property.Name.ToCamelCase()}"",
-                        TypeMode.Object,
+                        TypeMode.{GetTypeModeOfPropertyType(child, isEnum, out string createInstance)},
                         ({fullName} x) => x.{property.Name.ToCamelCase()},
-                        ({fullName} x, {child} value) => x.{property.Name.ToCamelCase()} = value{instancePropertyContent})");
+                        ({fullName} x, {child} value) => x.{property.Name.ToCamelCase()} = value{createInstance})");
                         index++;
                     }
                 }
@@ -655,15 +705,16 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private ClassReferenceInfo FindClassByName(NamespaceReferenceInfo namespaceReferenceInfo, string fullName)
         {
+            fullName = fullName.Replace("global::", "");
             ClassReferenceInfo find = namespaceReferenceInfo.Classes.FirstOrDefault(x => x.NameSpace + "." + x.NormalizedName == fullName);
             if (find == null)
                 find = namespaceReferenceInfo.Classes.FirstOrDefault(x => x.NormalizedName == fullName);
             return find;
         }
 
-        private EnumReferenceInfo FindEnumByName(NamespaceReferenceInfo namespaceReferenceInfo, string fullName)
+        private EnumReferenceInfo FindEnumByName(NamespaceReferenceInfo namespaceReferenceInfo, string fullName, bool findByNameSpace)
         {
-            return namespaceReferenceInfo.Enums.FirstOrDefault(x => x.NameSpace + "." + x.Name == fullName);
+            return findByNameSpace ? namespaceReferenceInfo.Enums.FirstOrDefault(x => x.NameSpace + "." + x.Name == fullName) : namespaceReferenceInfo.Enums.FirstOrDefault(x => x.Name == fullName);
         }
 
         public string GetFileNameFromClassName(string name)
@@ -752,6 +803,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 { "string","String" },
                 { "long","int" },
                 { "double","double" },
+                { "decimal","double" },
                 { "byte","int" },
                 { "short","int" },
                 { "uint","int" },
@@ -775,6 +827,8 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 { "system.date","DateTime" },
                 { "system.guid","String" },
                 { "system.uri","String" },
+                { "system.timespan","Duration" },
+                { "object","Object" },
             };
         private string GetReturnTypeName(string name, string serviceName, Dictionary<string, Dictionary<string, string>> nameSpaces)
         {
@@ -931,10 +985,16 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             return builder.ToString();
         }
 
+        static string FixImportPath(string path)
+        {
+            var items = path.Split('/');
+            return string.Join("/", items.Take(items.Length - 1));
+        }
+
         private void GenerateHttpServiceClass(ClassReferenceInfo classReferenceInfo, string prefix, StringBuilder builder, string baseServiceName, Dictionary<string, Dictionary<string, string>> nameSpaces)
         {
             string serviceName = FirstCharToUpper(classReferenceInfo.ServiceName);
-            string import = $"import 'package:{baseServiceName}/PostJsonToServerService.dart';";
+            string import = $"import 'package:{FixImportPath(baseServiceName)}/ServerProvider/Json/PostJsonToServerService.dart';";
             builder.AppendLine(import);
             AddToImport(import);
             string name = serviceName.Replace("/", "").Replace("\\", "") + "Service";
