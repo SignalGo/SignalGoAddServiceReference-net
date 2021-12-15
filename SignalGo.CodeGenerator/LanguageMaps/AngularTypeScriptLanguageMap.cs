@@ -351,7 +351,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 }
                 builder.Append(prefix + prefix + "}");
             }
-            builder.AppendLine($",result");
+            builder.AppendLine($",result,\"{baseServiceName}\"");
             builder.AppendLine(");");
             builder.AppendLine(prefix + "}");
             string result = builder.ToString();
