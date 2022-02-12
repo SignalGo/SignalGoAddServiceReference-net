@@ -27,19 +27,40 @@ namespace SignalGo.CodeGenerator.Models
             StringBuilder stringBuilder = new StringBuilder();
             if (Childs.Count > 0)
             {
-                stringBuilder.Append(Name.Contains(".") ? ("global::" + Name) : Name);
-                stringBuilder.Append('<');
+                if (Name != null)
+                {
+                    stringBuilder.Append(Name.Contains(".") ? ("global::" + Name) : Name);
+                    stringBuilder.Append('<');
+                }
                 foreach (GenericInfo item in Childs)
                 {
                     stringBuilder.Append(item.ToString());
                     if (Childs.Last() != item)
                         stringBuilder.Append(',');
                 }
-                stringBuilder.Append('>');
+                if (Name != null)
+                {
+                    stringBuilder.Append('>');
+                }
             }
             else
             {
-                stringBuilder.Append(Name.Contains(".") ? ("global::" + Name) : Name);
+                if (Name.StartsWith("("))
+                {
+                    string text = "(";
+                    Name = Name.Trim('(').Trim(')');
+                    foreach (var item in Name.Split(','))
+                    {
+                        text += item.Contains(".") ? ("global::" + item) : item;
+                        text+=",";
+                    }
+                    text=text.Substring(0, text.Length -1) + ")";
+                    stringBuilder.Append(text);
+                }
+                else
+                {
+                    stringBuilder.Append(Name.Contains(".") ? ("global::" + Name) : Name);
+                }
             }
             return stringBuilder.ToString();
         }
@@ -63,6 +84,8 @@ namespace SignalGo.CodeGenerator.Models
 
         public void ReplaceNameSpaces(Func<string, AddReferenceConfigInfo, string> clearNameSapceString, AddReferenceConfigInfo configInfo)
         {
+            if (Name == null)
+                return;
             Name = Name.Trim();
             if (Name.Contains("."))
             {
@@ -126,7 +149,10 @@ namespace SignalGo.CodeGenerator.Models
                 DoNumbericTemplate = doNumericTemplate
             };
             genericInfo.CanDoNumbericFunction = canDoNumbericFunction;
-            genericInfo.Childs = genericInfo.FindChilds(parent);
+            if (parent.Trim().StartsWith("("))
+                genericInfo.Childs = new List<GenericInfo>();
+            else
+                genericInfo.Childs = genericInfo.FindChilds(parent);
             genericInfo.Name = genericInfo.GetName(parent);
             return genericInfo;
         }
@@ -134,6 +160,7 @@ namespace SignalGo.CodeGenerator.Models
         private List<GenericInfo> FindChilds(string parent)
         {
             List<GenericInfo> result = new List<GenericInfo>();
+            parent = parent.Trim();
             string childText = GetBetween(parent, '<', '>');
             List<string> split = Split(childText, '<', '>', ',');
             foreach (string item in split)
@@ -177,15 +204,20 @@ namespace SignalGo.CodeGenerator.Models
             List<string> result = new List<string>();
             int indexToBreak = 0;
             StringBuilder childText = new StringBuilder();
+            int hasBraces = 0;
             foreach (char item in text)
             {
-                if (item == splitChar && indexToBreak == 0)
+                if (item == splitChar && indexToBreak == 0 && hasBraces == 0)
                 {
                     result.Add(childText.ToString());
                     childText.Clear();
                 }
                 else
                 {
+                    if (item == '(')
+                        hasBraces++;
+                    else if (item == ')')
+                        hasBraces--;
                     childText.Append(item);
                     if (item == start)
                         indexToBreak++;
@@ -200,7 +232,7 @@ namespace SignalGo.CodeGenerator.Models
 
         private string GetName(string parent)
         {
-            if (!parent.Contains('<'))
+            if (!parent.Contains('<') || parent.Trim().StartsWith("("))
                 return parent;
             int findIndex = parent.IndexOf('<');
             string fixName = TakeBlock(parent, '<', '>', '<', '>');
