@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>d006d51e-bd7a-4e8b-8676-2f3188a24f91</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>SignalGoAddReferenceShared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AddServiceWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Constants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Converters\RadioBoolToIntConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\LanguageMap.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\ProjectInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\ProjectItemInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\ProjectItemsInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\BaseViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ConfigServiceViewModels.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\LogicViewModels\GlobalConfigViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\LogicViewModels\ManageNamespacesViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\LogicViewModels\ManageSkipAssembliesViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\LogicViewModels\SettingsViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\WizardViewModels\GlobalConfigWizardViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\WizardViewModels\ManageNamespacesWizardViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\WizardViewModels\ManageSkipAssembliesWizardViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\WizardViewModels\SettingsWizardViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\AddOrUpdateServiceConfig.xaml.cs">
+      <DependentUpon>AddOrUpdateServiceConfig.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Views\GlobalConfigView.xaml.cs">
+      <DependentUpon>GlobalConfigView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Views\ManageNamespacesView.xaml.cs">
+      <DependentUpon>ManageNamespacesView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Views\ManageSkipAssembliesView.xaml.cs">
+      <DependentUpon>ManageSkipAssembliesView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Views\SettingsView.xaml.cs">
+      <DependentUpon>SettingsView.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="$(MSBuildThisFileDirectory)Views\AddOrUpdateServiceConfig.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(MSBuildThisFileDirectory)Views\GlobalConfigView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(MSBuildThisFileDirectory)Views\ManageNamespacesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(MSBuildThisFileDirectory)Views\ManageSkipAssembliesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(MSBuildThisFileDirectory)Views\SettingsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,50 @@
+﻿<UserControl
+    x:Class="SignalGoAddReferenceShared.Views.ManageNamespacesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:SignalGoAddReferenceShared.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:SignalGoAddReferenceShared.ViewModels.LogicViewModels"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400">
+    <UserControl.Resources>
+        <vm:ManageNamespacesViewModel x:Key="ManageNamespacesViewModel"/>
+    </UserControl.Resources>
+    <UserControl.DataContext>
+        <Binding Source="{StaticResource ManageNamespacesViewModel}"/>
+    </UserControl.DataContext>
+    <Grid>
+        <GroupBox Header="Manage namespaces" Margin="0,10,0,0">
+            <StackPanel Margin="10">
+                <TextBlock Text="Custom Name Spaces (Seperate with new line):" Margin="0,0,0,5"/>
+                <TextBox Text="{Binding CustomNamespaces,UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="50"/>
+                <TextBlock Text="Replace Name Spaces:" Margin="5"/>
+                <StackPanel Orientation="Horizontal">
+                    <CheckBox IsChecked="{Binding IsGlobal}" ToolTip="If you check it, this will replace all of the namespaces" Content="From:" Margin="5"/>
+                    <TextBox Text="{Binding FromNamespace,UpdateSourceTrigger=PropertyChanged}" x:Name="fromNameSpace" Width="150"/>
+                    <TextBlock Text="To:" Margin="5"/>
+                    <TextBox Text="{Binding ToNamespace,UpdateSourceTrigger=PropertyChanged}" Width="150"/>
+                    <Button Command="{Binding AddNameSpaceCommand}" Content="Add" Margin="10,0,0,0" Padding="25,0,25,0"/>
+                </StackPanel>
+                <ListView ItemsSource="{Binding ReplaceNameSpaces}" Margin="0,10,0,0" MaxHeight="300" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Is Global" DisplayMemberBinding="{Binding IsGlobal}" />
+                            <GridViewColumn Header="From" DisplayMemberBinding="{Binding From}" Width="150"/>
+                            <GridViewColumn Header="To" DisplayMemberBinding="{Binding To}" Width="150"/>
+                            <GridViewColumn Header="Remove">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{Binding RmoveNameSpaceCommand,Source={StaticResource ManageNamespacesViewModel}}" CommandParameter="{Binding}">Remove</Button>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </StackPanel>
+        </GroupBox>
+    </Grid>
+</UserControl>

@@ -1,26 +1,42 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2036
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32002.185
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalGoAddServiceReference", "SignalGoAddServiceReference\SignalGoAddServiceReference.csproj", "{CE2DB60E-903A-4811-AA14-09DA5D666CA5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalGo.CodeGenerator", "SignalGo.CodeGenerator\SignalGo.CodeGenerator.csproj", "{1D10000A-CC4E-45B3-99D1-1DD8B9581281}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalGo.CodeGenerator", "SignalGo.CodeGenerator\SignalGo.CodeGenerator.csproj", "{1D10000A-CC4E-45B3-99D1-1DD8B9581281}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalGoAddServiceReferenceCore", "SignalGoAddServiceReferenceCore\SignalGoAddServiceReferenceCore.csproj", "{E62B39A3-0950-4BCE-8105-8775D68E590D}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SignalGoAddReferenceShared", "SignalGoAddReferenceShared\SignalGoAddReferenceShared.shproj", "{D006D51E-BD7A-4E8B-8676-2F3188A24F91}"
 EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SignalGoAddReferenceShared\SignalGoAddReferenceShared.projitems*{d006d51e-bd7a-4e8b-8676-2f3188a24f91}*SharedItemsImports = 13
+		SignalGoAddReferenceShared\SignalGoAddReferenceShared.projitems*{e62b39a3-0950-4bce-8105-8775d68e590d}*SharedItemsImports = 4
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CE2DB60E-903A-4811-AA14-09DA5D666CA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CE2DB60E-903A-4811-AA14-09DA5D666CA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CE2DB60E-903A-4811-AA14-09DA5D666CA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CE2DB60E-903A-4811-AA14-09DA5D666CA5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1D10000A-CC4E-45B3-99D1-1DD8B9581281}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1D10000A-CC4E-45B3-99D1-1DD8B9581281}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D10000A-CC4E-45B3-99D1-1DD8B9581281}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1D10000A-CC4E-45B3-99D1-1DD8B9581281}.Debug|x86.Build.0 = Debug|Any CPU
 		{1D10000A-CC4E-45B3-99D1-1DD8B9581281}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1D10000A-CC4E-45B3-99D1-1DD8B9581281}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D10000A-CC4E-45B3-99D1-1DD8B9581281}.Release|x86.ActiveCfg = Release|Any CPU
+		{1D10000A-CC4E-45B3-99D1-1DD8B9581281}.Release|x86.Build.0 = Release|Any CPU
+		{E62B39A3-0950-4BCE-8105-8775D68E590D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E62B39A3-0950-4BCE-8105-8775D68E590D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E62B39A3-0950-4BCE-8105-8775D68E590D}.Debug|x86.ActiveCfg = Debug|x86
+		{E62B39A3-0950-4BCE-8105-8775D68E590D}.Debug|x86.Build.0 = Debug|x86
+		{E62B39A3-0950-4BCE-8105-8775D68E590D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E62B39A3-0950-4BCE-8105-8775D68E590D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E62B39A3-0950-4BCE-8105-8775D68E590D}.Release|x86.ActiveCfg = Release|x86
+		{E62B39A3-0950-4BCE-8105-8775D68E590D}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

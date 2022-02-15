@@ -1,0 +1,44 @@
+﻿<UserControl
+    x:Class="SignalGoAddReferenceShared.Views.ManageSkipAssembliesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:SignalGoAddReferenceShared.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:SignalGoAddReferenceShared.ViewModels.LogicViewModels"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400">
+    <UserControl.Resources>
+        <vm:ManageSkipAssembliesViewModel x:Key="ManageSkipAssembliesViewModel"/>
+    </UserControl.Resources>
+    <UserControl.DataContext>
+        <Binding Source="{StaticResource ManageSkipAssembliesViewModel}" />
+    </UserControl.DataContext>
+    <Grid>
+        <GroupBox Header="Manage Skip Assemblies" Margin="0,10,0,0">
+            <StackPanel Margin="10">
+                <TextBlock Text="Skip assemblies:" Margin="5"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Assembly name (example aseemblyname.dll):" Margin="5"/>
+                    <TextBox Text="{Binding SkipAssemblyName,UpdateSourceTrigger=PropertyChanged}" Width="200"/>
+                    <Button Command="{Binding AddSkipAssemblyCommand}" Content="Add" Margin="10,0,0,0" Padding="25,0,25,0"/>
+                </StackPanel>
+                <ListView ItemsSource="{Binding SkipAssemblies}" Margin="0,10,0,0" MaxHeight="300" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Assembly name" DisplayMemberBinding="{Binding}" Width="400"/>
+                            <GridViewColumn Header="Remove">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{Binding RemoveSkipAssemblyCommand,Source={StaticResource ManageSkipAssembliesViewModel}}" CommandParameter="{Binding}">Remove</Button>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </StackPanel>
+        </GroupBox>
+    </Grid>
+</UserControl>
