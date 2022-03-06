@@ -422,12 +422,12 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             string returnType = "public async Task";
             if (methodInfo.ReturnTypeName != "void")
                 returnType = "public async Task<" + methodInfo.ReturnTypeName + ">";
-            builder.AppendLine($"{prefix}{returnType} {methodInfo.Name}Async({GenerateMethodParameters(methodInfo)}){(doSemicolon ? ";" : "")}");
+            builder.AppendLine($"{prefix}{returnType} {methodInfo.GetMethodName()}Async({GenerateMethodParameters(methodInfo)}){(doSemicolon ? ";" : "")}");
             //generate empty data
             if (!doSemicolon)
             {
                 builder.AppendLine($"{prefix}{{");
-                builder.AppendLine($"{prefix + prefix}HttpClientResponse result = await _httpClient.PostAsync(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.Name}\", new ParameterInfo[]");
+                builder.AppendLine($"{prefix + prefix}HttpClientResponse result = await _httpClient.PostAsync(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.GetMethodName()}\", new ParameterInfo[]");
                 builder.AppendLine($"{prefix + prefix}{{");
                 GenerateHttpMethodParameters(methodInfo, prefix, builder, doSemicolon);
                 builder.AppendLine($"{prefix + prefix}}});");

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace SignalGo.Shared.Models.ServiceReference
 {
@@ -15,10 +11,28 @@ namespace SignalGo.Shared.Models.ServiceReference
 
     public class MethodReferenceInfo
     {
+        /// <summary>
+        /// real name in server
+        /// </summary>
+        public string RealName { get; set; }
+        /// <summary>
+        /// customized name in client side
+        /// </summary>
         public string Name { get; set; }
         public string DuplicateName { get; set; }
         public string ReturnTypeName { get; set; }
         public ProtocolType ProtocolType { get; set; } = ProtocolType.HttpPost;
         public List<ParameterReferenceInfo> Parameters { get; set; } = new List<ParameterReferenceInfo>();
+
+        public string GetMethodName(bool onlyReal = false)
+        {
+            if (onlyReal)
+            {
+                if (string.IsNullOrEmpty(RealName))
+                    return Name;
+                return RealName;
+            }
+            return Name;
+        }
     }
 }

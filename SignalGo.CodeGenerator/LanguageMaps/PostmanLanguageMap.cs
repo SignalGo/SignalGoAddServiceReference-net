@@ -38,7 +38,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 
         private static void GenerateHttpMethod(string serviceName, MethodReferenceInfo methodInfo, StringBuilder builder)
         {
-            builder.AppendLine($"\"name\": \"{methodInfo.Name}\",");
+            builder.AppendLine($"\"name\": \"{methodInfo.GetMethodName()}\",");
             builder.AppendLine($@"""request"": {{
 						""method"": ""POST"",
 						""header"": [],
@@ -52,13 +52,13 @@ namespace SignalGo.CodeGenerator.LanguageMaps
 							}}
 						}},
 						""url"": {{
-							""raw"": ""{{{{endpoint}}}}/{serviceName}/{methodInfo.Name}"",
+							""raw"": ""{{{{endpoint}}}}/{serviceName}/{methodInfo.GetMethodName()}"",
 							""host"": [
 							""{{{{endpoint}}}}""
 							],
 							""path"": [
 								""{serviceName}"",
-								""{methodInfo.Name}""
+								""{methodInfo.GetMethodName()}""
 							]
 						}}
 					}}");

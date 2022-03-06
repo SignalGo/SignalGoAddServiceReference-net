@@ -345,14 +345,14 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 builder.AppendLine($"TypeBuilder.make<{name}>(TypeMode.Object)");
                 foreach (MethodReferenceInfo methodInfo in callbackClassInfo.Methods)
                 {
-                    string methodName = methodInfo.Name;
+                    string methodName = methodInfo.GetMethodName();
                     if (methodName.EndsWith("Async"))
                         methodName = methodName.Substring(0, methodName.Length - 5);
                     builder.AppendLine($@".addMethod(
           ""{methodName}"",
           {GenerateJsonInitializerParametersArray(methodInfo)},
           ({name} x, {GenerateJsonInitializerParametersKeyValue(methodInfo, true)}) =>
-              x.{methodInfo.Name.ToCamelCase()}({GenerateJsonInitializerParametersKeyValue(methodInfo, false)}))");
+              x.{methodInfo.GetMethodName().ToCamelCase()}({GenerateJsonInitializerParametersKeyValue(methodInfo, false)}))");
                 }
                 builder.AppendLine($@".createInstance(() => new {name}())
       .build();");
@@ -742,9 +742,9 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             StringBuilder builder = new StringBuilder();
             builder.AppendLine($"{prefix} Future<{returnTypeName}> {methodInfo.DuplicateName.ToCamelCase()}({GenerateMethodParameters(methodInfo, baseServiceName, nameSpaces)}) {{");
             if (isDuplex)
-                builder.Append($@"return PostJsonToServerService.send<{returnTypeName}>('{serviceName}','{methodInfo.Name}',");
+                builder.Append($@"return PostJsonToServerService.send<{returnTypeName}>('{serviceName}','{methodInfo.GetMethodName()}',");
             else
-                builder.Append($@"return PostJsonToServerService.post<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
+                builder.Append($@"return PostJsonToServerService.post<{returnTypeName}>('{serviceName}/{methodInfo.GetMethodName()}',");
 
             int index = 0;
             if (methodInfo.Parameters.Count == 0)

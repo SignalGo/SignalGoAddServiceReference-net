@@ -314,14 +314,14 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             }
             if (isStream)
             {
-                builder.Append($@"return this.server.postFile<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
+                builder.Append($@"return this.server.postFile<{returnTypeName}>('{serviceName}/{methodInfo.GetMethodName()}',");
             }
             else
             {
                 if (methodInfo.ProtocolType == ProtocolType.HttpGet)
-                    builder.Append($@"return this.server.get<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
+                    builder.Append($@"return this.server.get<{returnTypeName}>('{serviceName}/{methodInfo.GetMethodName()}',");
                 else
-                    builder.Append($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
+                    builder.Append($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.GetMethodName()}',");
             }
 
             int index = 0;

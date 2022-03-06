@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalGoAddServiceReference
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SignalGoAddReferenceShared", "SignalGoAddReferenceShared\SignalGoAddReferenceShared.shproj", "{D006D51E-BD7A-4E8B-8676-2F3188A24F91}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalGoAddServiceReference", "SignalGoAddServiceReference\SignalGoAddServiceReference.csproj", "{CE2DB60E-903A-4811-AA14-09DA5D666CA5}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		SignalGoAddReferenceShared\SignalGoAddReferenceShared.projitems*{d006d51e-bd7a-4e8b-8676-2f3188a24f91}*SharedItemsImports = 13
@@ -37,6 +39,14 @@ Global
 		{E62B39A3-0950-4BCE-8105-8775D68E590D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E62B39A3-0950-4BCE-8105-8775D68E590D}.Release|x86.ActiveCfg = Release|x86
 		{E62B39A3-0950-4BCE-8105-8775D68E590D}.Release|x86.Build.0 = Release|x86
+		{CE2DB60E-903A-4811-AA14-09DA5D666CA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE2DB60E-903A-4811-AA14-09DA5D666CA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE2DB60E-903A-4811-AA14-09DA5D666CA5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CE2DB60E-903A-4811-AA14-09DA5D666CA5}.Debug|x86.Build.0 = Debug|Any CPU
+		{CE2DB60E-903A-4811-AA14-09DA5D666CA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE2DB60E-903A-4811-AA14-09DA5D666CA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE2DB60E-903A-4811-AA14-09DA5D666CA5}.Release|x86.ActiveCfg = Release|Any CPU
+		{CE2DB60E-903A-4811-AA14-09DA5D666CA5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

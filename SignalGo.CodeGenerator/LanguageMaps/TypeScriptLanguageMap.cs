@@ -277,7 +277,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
             StringBuilder builder = new StringBuilder();
             string returnTypeName = GetReturnTypeName(methodInfo.ReturnTypeName, baseServiceName);
             builder.AppendLine($"{prefix}{methodInfo.DuplicateName}({GenerateMethodParameters(methodInfo, baseServiceName)}): Promise<{returnTypeName}> {{");
-            builder.Append($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.Name}',");
+            builder.Append($@"return this.server.post<{returnTypeName}>('{serviceName}/{methodInfo.GetMethodName()}',");
             int index = 0;
             if (methodInfo.Parameters.Count == 0)
                 builder.AppendLine("null");
