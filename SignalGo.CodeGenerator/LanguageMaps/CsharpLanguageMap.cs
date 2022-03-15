@@ -687,7 +687,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 }
                 builder.AppendLine($"{prefix}{{");
                 if (isStream)
-                    builder.AppendLine($"{prefix + prefix}SignalGo.Client.HttpClientResponseBase result = _httpClient.PostHead(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.GetMethodName(true)}\", new SignalGo.Shared.Models.ParameterInfo[]");
+                    builder.AppendLine($"{prefix + prefix}SignalGo.Client.HttpClientResponseBase result = _httpClient.Post(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.GetMethodName(true)}\", new SignalGo.Shared.Models.ParameterInfo[]");
                 else
                     builder.AppendLine($"{prefix + prefix}SignalGo.Client.HttpClientResponse result = _httpClient.Post(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.GetMethodName(true)}\", new SignalGo.Shared.Models.ParameterInfo[]");
                 builder.AppendLine($"{prefix + prefix}{{");
@@ -727,7 +727,7 @@ namespace SignalGo.CodeGenerator.LanguageMaps
                 }
                 builder.AppendLine($"{prefix}{{");
                 if (isStream)
-                    builder.AppendLine($"{prefix + prefix}SignalGo.Client.HttpClientResponseBase result = await _httpClient.PostHeadAsync(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.GetMethodName(true)}\", new SignalGo.Shared.Models.ParameterInfo[]");
+                    builder.AppendLine($"{prefix + prefix}SignalGo.Client.HttpClientResponseBase result = await _httpClient.PostAsync(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.GetMethodName(true)}\", new SignalGo.Shared.Models.ParameterInfo[]");
                 else
                     builder.AppendLine($"{prefix + prefix}SignalGo.Client.HttpClientResponse result = await _httpClient.PostAsync(_serverUrl + (_serverUrl.EndsWith(\"/\") ? \"\" : \"{"/"}\") + \"{serviceName}/{methodInfo.GetMethodName(true)}\", new SignalGo.Shared.Models.ParameterInfo[]");
                 builder.AppendLine($"{prefix + prefix}{{");
